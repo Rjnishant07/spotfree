@@ -5,24 +5,36 @@ import { useSpotFree } from '@/context/SpotFreeContext';
 import { Header } from '../Header';
 import { StatusBadge } from '../StatusBadge';
 import { RoomStatus } from '@/lib/types';
+import { ReservationWindow } from '../ReservationWindow';
+import {
+  getReservationDateOptions,
+  getDefault12HrTimes,
+  to12Hr,
+} from '@/lib/reservationUtils';
 
 export const UpdateRoomStatusScreen: React.FC = () => {
-  const { selectedRoom, updateRoomStatus, navigate, currentRole, canUserOverrideRoom } = useSpotFree();
+  const { selectedRoom, updateRoomStatus, navigate, currentRole, canUserOverrideRoom, checkOverlap, showToast } = useSpotFree();
 
   const r = selectedRoom;
-  // Default start time to current real local time HH:MM
-  const nowHHMM = (() => {
-    const n = new Date();
-    return `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`;
-  })();
+  const dateOptions = getReservationDateOptions();
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    return r?.reservationDate || (dateOptions.length > 0 ? dateOptions[0].value : '');
+  });
+
+  const defaultTimes = getDefault12HrTimes(true);
+  const [startTime, setStartTime] = useState<string>(() => {
+    return r?.reservedStart ? to12Hr(r.reservedStart) : defaultTimes.startTime;
+  });
+  const [endTime, setEndTime] = useState<string>(() => {
+    return r?.reservedEnd ? to12Hr(r.reservedEnd) : defaultTimes.endTime;
+  });
+
+  const [isReservationValid, setIsReservationValid] = useState<boolean>(true);
+  const [reservationError, setReservationError] = useState<string>('');
+
   const [chosenStatus, setChosenStatus] = useState<RoomStatus>(
     r ? (r.status === 'NO INFORMATION' ? 'VACANT' : r.status) : 'VACANT'
   );
-  const [reservedUntil, setReservedUntil] = useState<string>(r?.reservedEnd || '');
-  const [startTime, setStartTime] = useState<string>(
-    r?.reservedStart ? r.reservedStart : nowHHMM
-  );
-  const [endTime, setEndTime] = useState<string>(r?.reservedEnd || '');
   const [note, setNote] = useState<string>('Updated via mobile client');
 
   if (!r) {
@@ -47,11 +59,25 @@ export const UpdateRoomStatusScreen: React.FC = () => {
     if (!authCheck.allowed) {
       return;
     }
+    if (chosenStatus === 'RESERVED' && !isReservationValid) {
+      showToast(reservationError || 'Please enter valid reservation start and end times', 'error');
+      return;
+    }
+
     const finalNote = chosenStatus === 'RESERVED'
-      ? `Reserved: ${startTime} – ${endTime}${note ? ` • ${note}` : ''}`
+      ? `Reserved: ${startTime} – ${endTime} (${selectedDate})${note ? ` • ${note}` : ''}`
       : note;
     const source = currentRole.toLowerCase() === 'admin' ? 'ADMIN OVERRIDE' : 'QR';
-    const result = updateRoomStatus(r.id, chosenStatus, finalNote, source, reservedUntil, startTime, endTime);
+    const result = updateRoomStatus(
+      r.id,
+      chosenStatus,
+      finalNote,
+      source,
+      endTime,
+      startTime,
+      endTime,
+      selectedDate
+    );
     if (result && !result.success) {
       return;
     }
@@ -283,48 +309,24 @@ export const UpdateRoomStatusScreen: React.FC = () => {
               </div>
             </label>
 
-            {/* Conditional Reserved Start & End Time (with Quick Presets) */}
+            {/* Conditional Reserved Start & End Time (with Real Date & 12-Hour Times) */}
             {chosenStatus === 'RESERVED' && (
-              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex flex-col gap-2.5 animate-in fade-in duration-150">
-                <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-bold text-amber-900 uppercase">
-                    Reservation Window
-                  </label>
-                  <span className="text-[10px] text-amber-700 font-medium">Start &amp; End Time</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-semibold text-amber-800" htmlFor="start-time-input">
-                      Start Time
-                    </label>
-                    <input
-                      id="start-time-input"
-                      type="time"
-                      value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
-                      disabled={!authCheck.allowed}
-                      className="w-full text-xs p-2 rounded-lg bg-white border border-amber-300 font-bold text-amber-950 focus:outline-none"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-semibold text-amber-800" htmlFor="end-time-input">
-                      End Time
-                    </label>
-                    <input
-                      id="end-time-input"
-                      type="time"
-                      value={endTime}
-                      onChange={(e) => {
-                        setEndTime(e.target.value);
-                        setReservedUntil(e.target.value);
-                      }}
-                      disabled={!authCheck.allowed}
-                      className="w-full text-xs p-2 rounded-lg bg-white border border-amber-300 font-bold text-amber-950 focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
+              <ReservationWindow
+                date={selectedDate}
+                onDateChange={setSelectedDate}
+                startTime={startTime}
+                onStartTimeChange={setStartTime}
+                endTime={endTime}
+                onEndTimeChange={setEndTime}
+                disabled={!authCheck.allowed}
+                roomId={r.id}
+                theme="amber"
+                onValidationChange={(isValid, err) => {
+                  setIsReservationValid(isValid);
+                  setReservationError(err || '');
+                }}
+                checkOverlapFn={(sMins, eMins) => checkOverlap(r.id, selectedDate, sMins, eMins)}
+              />
             )}
 
             {/* Remarks / Note */}
@@ -347,13 +349,13 @@ export const UpdateRoomStatusScreen: React.FC = () => {
           {/* Submit Action */}
           <button
             type="submit"
-            disabled={!authCheck.allowed}
+            disabled={!authCheck.allowed || (chosenStatus === 'RESERVED' && !isReservationValid)}
             className={`w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all mt-1 ${
-              !authCheck.allowed
+              !authCheck.allowed || (chosenStatus === 'RESERVED' && !isReservationValid)
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed pointer-events-none'
                 : authCheck.isOverride
-                ? 'bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white'
-                : 'bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white'
+                ? 'bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white cursor-pointer'
+                : 'bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white cursor-pointer'
             }`}
           >
             <span className="material-symbols-outlined text-base">

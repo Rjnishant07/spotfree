@@ -5,9 +5,11 @@ import { useSpotFree, normalizeRoleToAuthority } from '@/context/SpotFreeContext
 import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 import { StatusBadge } from '../StatusBadge';
+import { ReservationWindow } from '../ReservationWindow';
 import { Room, RoomStatus, StatusHistoryItem, UserProfile, AuthorityLevel } from '@/lib/types';
 import { MOCK_USERS } from '@/mock-data/users';
 import { INITIAL_PROFILES } from '@/lib/mockData';
+import { getTodayDateString, getDefault12HrTimes, to12Hr } from '@/lib/reservationUtils';
 
 interface MatchedUserData {
   fullName: string;
@@ -260,6 +262,7 @@ export const StatusHistoryScreen: React.FC = () => {
     adminOverrideStatus,
     updateRoomStatus,
     showToast,
+    checkOverlap,
     generateDateOptions,
   } = useSpotFree();
 
@@ -277,24 +280,21 @@ export const StatusHistoryScreen: React.FC = () => {
     vacantRooms[0]?.id || ''
   );
   // Default date = today as YYYY-MM-DD
-  const todayValue = (() => {
-    const n = new Date();
-    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
-  })();
-  const nowHHMM = (() => {
-    const n = new Date();
-    return `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`;
-  })();
+  const todayValue = getTodayDateString();
+  const defaultBookTimes = getDefault12HrTimes(true);
   const [bookDate, setBookDate] = useState<string>(todayValue);
-  const [bookStartTime, setBookStartTime] = useState<string>(nowHHMM);
-  const [bookEndTime, setBookEndTime] = useState<string>('');
+  const [bookStartTime, setBookStartTime] = useState<string>(defaultBookTimes.startTime);
+  const [bookEndTime, setBookEndTime] = useState<string>(defaultBookTimes.endTime);
+  const [isBookValid, setIsBookValid] = useState<boolean>(true);
+  const [bookError, setBookError] = useState<string>('');
 
   // Admin Override Modal State
   const [overrideItem, setOverrideItem] = useState<StatusHistoryItem | null>(null);
   const [overrideDate, setOverrideDate] = useState<string>(todayValue);
   const [overrideStatus, setOverrideStatus] = useState<RoomStatus>('RESERVED');
-  const [overrideStartTime, setOverrideStartTime] = useState<string>('');
-  const [overrideEndTime, setOverrideEndTime] = useState<string>('');
+  const [overrideStartTime, setOverrideStartTime] = useState<string>(defaultBookTimes.startTime);
+  const [overrideEndTime, setOverrideEndTime] = useState<string>(defaultBookTimes.endTime);
+  const [isOverrideValid, setIsOverrideValid] = useState<boolean>(true);
   const [isManualStart, setIsManualStart] = useState<boolean>(false);
   const [isManualEnd, setIsManualEnd] = useState<boolean>(false);
   const [timeValidationError, setTimeValidationError] = useState<string>('');
@@ -807,50 +807,22 @@ export const StatusHistoryScreen: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Date */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-slate-600 uppercase">
-                    Reservation Date
-                  </label>
-                  <select
-                    value={bookDate}
-                    onChange={(e) => setBookDate(e.target.value)}
-                    className="w-full text-xs p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 focus:outline-none focus:bg-white"
-                  >
-                    {generateDateOptions().map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Start Time & End Time */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold text-slate-600 uppercase">
-                      Start Time
-                    </label>
-                    <input
-                      type="time"
-                      value={bookStartTime}
-                      onChange={(e) => setBookStartTime(e.target.value)}
-                      required
-                      className="w-full text-xs p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 focus:outline-none focus:bg-white"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold text-slate-600 uppercase">
-                      End Time
-                    </label>
-                    <input
-                      type="time"
-                      value={bookEndTime}
-                      onChange={(e) => setBookEndTime(e.target.value)}
-                      required
-                      className="w-full text-xs p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 focus:outline-none focus:bg-white"
-                    />
-                  </div>
-                </div>
+                {/* Reservation Window */}
+                <ReservationWindow
+                  date={bookDate}
+                  onDateChange={setBookDate}
+                  startTime={bookStartTime}
+                  onStartTimeChange={setBookStartTime}
+                  endTime={bookEndTime}
+                  onEndTimeChange={setBookEndTime}
+                  roomId={selectedBookRoom}
+                  theme="slate"
+                  onValidationChange={(isValid, err) => {
+                    setIsBookValid(isValid);
+                    setBookError(err || '');
+                  }}
+                  checkOverlapFn={(sMins, eMins) => checkOverlap(selectedBookRoom, bookDate, sMins, eMins)}
+                />
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2">
@@ -863,7 +835,12 @@ export const StatusHistoryScreen: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm cursor-pointer"
+                    disabled={!isBookValid}
+                    className={`flex-1 py-2 text-white text-xs font-bold rounded-lg shadow-sm transition-all ${
+                      !isBookValid
+                        ? 'bg-slate-300 text-slate-500 cursor-not-allowed pointer-events-none'
+                        : 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer'
+                    }`}
                   >
                     Confirm Booking
                   </button>
@@ -1008,87 +985,21 @@ export const StatusHistoryScreen: React.FC = () => {
 
                     {/* TIME RANGE SECTION FOR RESERVED (Required) or OCCUPIED (Optional) */}
                     {(overrideStatus === 'RESERVED' || overrideStatus === 'OCCUPIED') && (
-                      <div
-                        className={`flex flex-col gap-2.5 p-3 rounded-xl border ${
-                          overrideStatus === 'RESERVED'
-                            ? 'bg-amber-50/70 border-amber-200/90'
-                            : 'bg-rose-50/50 border-rose-200/90'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span
-                            className={`text-[10px] font-bold uppercase tracking-wider ${
-                              overrideStatus === 'RESERVED' ? 'text-amber-950' : 'text-rose-950'
-                            }`}
-                          >
-                            {overrideStatus === 'RESERVED' ? 'Reservation Window *' : 'Session Window (Optional)'}
-                          </span>
-                        </div>
-
-                        {/* Date */}
-                        <div className="flex flex-col gap-1">
-                          <label className="text-[10px] font-bold text-slate-600 uppercase">Date</label>
-                          <select
-                            value={overrideDate}
-                            onChange={(e) => setOverrideDate(e.target.value)}
-                            className={`w-full text-xs p-2 rounded-lg bg-white border border-slate-300 font-semibold text-slate-900 focus:outline-none shadow-2xs ${
-                              isAdmin ? 'focus:border-purple-500' : 'focus:border-blue-500'
-                            }`}
-                          >
-                            {generateDateOptions().map((opt) => (
-                              <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          {/* START TIME */}
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[10px] font-bold text-slate-600 uppercase">
-                              Start {overrideStatus === 'RESERVED' && <span className="text-rose-600">*</span>}
-                            </label>
-                            <input
-                              type="time"
-                              value={overrideStartTime}
-                              onChange={(e) => {
-                                setOverrideStartTime(e.target.value);
-                                setTimeValidationError('');
-                              }}
-                              placeholder="HH:MM"
-                              className={`w-full text-xs p-2 rounded-lg bg-white border border-slate-300 font-bold text-slate-900 focus:outline-none shadow-2xs ${
-                                isAdmin ? 'focus:border-purple-500' : 'focus:border-blue-500'
-                              }`}
-                            />
-                          </div>
-
-                          {/* END TIME */}
-                          <div className="flex flex-col gap-1">
-                            <label className="text-[10px] font-bold text-slate-600 uppercase">
-                              End {overrideStatus === 'RESERVED' && <span className="text-rose-600">*</span>}
-                            </label>
-                            <input
-                              type="time"
-                              value={overrideEndTime}
-                              onChange={(e) => {
-                                setOverrideEndTime(e.target.value);
-                                setTimeValidationError('');
-                              }}
-                              placeholder="HH:MM"
-                              className={`w-full text-xs p-2 rounded-lg bg-white border border-slate-300 font-bold text-slate-900 focus:outline-none shadow-2xs ${
-                                isAdmin ? 'focus:border-purple-500' : 'focus:border-blue-500'
-                              }`}
-                            />
-                          </div>
-                        </div>
-
-                        {/* INLINE VALIDATION ERROR */}
-                        {timeValidationError && (
-                          <div className="flex items-center gap-1.5 text-rose-700 text-[11px] font-medium bg-rose-100/90 p-2 rounded-lg border border-rose-200">
-                            <span className="material-symbols-outlined text-sm shrink-0">error</span>
-                            <span>{timeValidationError}</span>
-                          </div>
-                        )}
-                      </div>
+                      <ReservationWindow
+                        date={overrideDate}
+                        onDateChange={setOverrideDate}
+                        startTime={overrideStartTime}
+                        onStartTimeChange={setOverrideStartTime}
+                        endTime={overrideEndTime}
+                        onEndTimeChange={setOverrideEndTime}
+                        roomId={overrideItem.room}
+                        theme={overrideStatus === 'RESERVED' ? 'amber' : 'slate'}
+                        onValidationChange={(isValid, err) => {
+                          setIsOverrideValid(isValid);
+                          setTimeValidationError(err || '');
+                        }}
+                        checkOverlapFn={(sMins, eMins) => checkOverlap(overrideItem.room, overrideDate, sMins, eMins)}
+                      />
                     )}
 
                     {/* VACANT NOTE */}
@@ -1129,10 +1040,13 @@ export const StatusHistoryScreen: React.FC = () => {
                     </button>
                     <button
                       type="submit"
-                      className={`flex-[2] py-2.5 text-white text-xs font-bold rounded-xl shadow-sm cursor-pointer transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 ${
-                        isAdmin
-                          ? 'bg-purple-900 hover:bg-purple-800 shadow-purple-900/20'
-                          : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
+                      disabled={overrideStatus === 'RESERVED' && !isOverrideValid}
+                      className={`flex-[2] py-2.5 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 ${
+                        overrideStatus === 'RESERVED' && !isOverrideValid
+                          ? 'bg-slate-300 text-slate-500 cursor-not-allowed pointer-events-none'
+                          : isAdmin
+                          ? 'bg-purple-900 hover:bg-purple-800 shadow-purple-900/20 active:scale-[0.98] cursor-pointer'
+                          : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20 active:scale-[0.98] cursor-pointer'
                       }`}
                     >
                       <span className="material-symbols-outlined text-base">verified</span>

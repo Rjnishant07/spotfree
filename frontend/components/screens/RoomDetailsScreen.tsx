@@ -5,6 +5,8 @@ import { useSpotFree } from '@/context/SpotFreeContext';
 import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 import { StatusBadge } from '../StatusBadge';
+import { ReservationWindow } from '../ReservationWindow';
+import { getDefault12HrTimes, getTodayDateString } from '@/lib/reservationUtils';
 
 export const RoomDetailsScreen: React.FC = () => {
   const {
@@ -15,23 +17,19 @@ export const RoomDetailsScreen: React.FC = () => {
     canUserOverrideRoom,
     currentRole,
     bookVacantRoom,
-    generateDateOptions,
+    checkOverlap,
   } = useSpotFree();
   const { effectiveView } = useUIPrefs();
   const isWeb = effectiveView === 'web';
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const [showBookModal, setShowBookModal] = useState<boolean>(false);
-  const todayVal = (() => {
-    const n = new Date();
-    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
-  })();
-  const nowHHMM = (() => {
-    const n = new Date();
-    return `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`;
-  })();
+  const todayVal = getTodayDateString();
+  const defaultTimes = getDefault12HrTimes(true);
   const [bookDate, setBookDate] = useState<string>(todayVal);
-  const [bookStartTime, setBookStartTime] = useState<string>(nowHHMM);
-  const [bookEndTime, setBookEndTime] = useState<string>('');
+  const [bookStartTime, setBookStartTime] = useState<string>(defaultTimes.startTime);
+  const [bookEndTime, setBookEndTime] = useState<string>(defaultTimes.endTime);
+  const [isBookValid, setIsBookValid] = useState<boolean>(true);
+  const [bookError, setBookError] = useState<string>('');
   const [bookRemarks, setBookRemarks] = useState<string>('');
 
   const room = selectedRoom;
@@ -339,46 +337,28 @@ export const RoomDetailsScreen: React.FC = () => {
 
               {showBookModal && (
                 <div className="flex flex-col gap-2 pt-2 border-t border-emerald-200 animate-in fade-in duration-150">
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <div className="flex flex-col gap-0.5">
-                      <label className="text-[10px] font-bold text-emerald-900 uppercase">Date</label>
-                      <select
-                        value={bookDate}
-                        onChange={(e) => setBookDate(e.target.value)}
-                        className="text-xs p-1.5 rounded-lg bg-white border border-emerald-300 font-bold text-slate-800 focus:outline-none"
-                      >
-                        {generateDateOptions().map((opt) => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <label className="text-[10px] font-bold text-emerald-900 uppercase">Start Time</label>
-                      <input
-                        type="time"
-                        value={bookStartTime}
-                        onChange={(e) => setBookStartTime(e.target.value)}
-                        required
-                        className="text-xs p-1.5 rounded-lg bg-white border border-emerald-300 font-bold text-slate-800 focus:outline-none"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <label className="text-[10px] font-bold text-emerald-900 uppercase">End Time</label>
-                      <input
-                        type="time"
-                        value={bookEndTime}
-                        onChange={(e) => setBookEndTime(e.target.value)}
-                        required
-                        className="text-xs p-1.5 rounded-lg bg-white border border-emerald-300 font-bold text-slate-800 focus:outline-none"
-                      />
-                    </div>
-                  </div>
+                  <ReservationWindow
+                    date={bookDate}
+                    onDateChange={setBookDate}
+                    startTime={bookStartTime}
+                    onStartTimeChange={setBookStartTime}
+                    endTime={bookEndTime}
+                    onEndTimeChange={setBookEndTime}
+                    roomId={room.id}
+                    theme="emerald"
+                    onValidationChange={(isValid, err) => {
+                      setIsBookValid(isValid);
+                      setBookError(err || '');
+                    }}
+                    checkOverlapFn={(sMins, eMins) => checkOverlap(room.id, bookDate, sMins, eMins)}
+                  />
 
                   <button
                     type="button"
+                    disabled={!isBookValid}
                     onClick={() => {
-                      if (!bookStartTime || !bookEndTime) {
-                        showToast('Please enter both start and end times', 'error');
+                      if (!isBookValid) {
+                        showToast(bookError || 'Please enter valid start and end times', 'error');
                         return;
                       }
                       const ok = bookVacantRoom(room.id, bookDate, bookStartTime, bookEndTime);
@@ -386,7 +366,11 @@ export const RoomDetailsScreen: React.FC = () => {
                         setShowBookModal(false);
                       }
                     }}
-                    className="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5"
+                    className={`w-full py-2.5 rounded-xl text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 ${
+                      !isBookValid
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed pointer-events-none'
+                        : 'bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer active:scale-95'
+                    }`}
                   >
                     <span className="material-symbols-outlined text-sm">bookmark_add</span>
                     <span>Confirm Reservation</span>

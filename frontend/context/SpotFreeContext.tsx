@@ -75,8 +75,15 @@ interface SpotFreeContextType {
     source?: 'QR' | 'MANUAL' | 'TIMETABLE' | 'STUDENT' | 'FACULTY OVERRIDE' | 'ADMIN OVERRIDE' | 'BOOKING',
     reservedUntil?: string | null,
     startTime?: string | null,
-    endTime?: string | null
+    endTime?: string | null,
+    date?: string | null
   ) => { success: boolean; error?: string };
+  checkOverlap: (
+    roomId: string,
+    date: string,
+    startMinutes: number,
+    endMinutes: number
+  ) => { overlapping: boolean; conflictDesc?: string };
   bookVacantRoom: (
     roomId: string,
     date: string,
@@ -337,14 +344,15 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(timer);
   }, []);
 
-  // Generate next 7 days as selectable date options
+  // Generate selectable date options: Today and next 5 calendar days only
   const generateDateOptions = useCallback((): { value: string; label: string }[] => {
     const opts: { value: string; label: string }[] = [];
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const shortDayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i <= 5; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
       const yyyy = d.getFullYear();
@@ -352,10 +360,11 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
       const dd = String(d.getDate()).padStart(2, '0');
       const value = `${yyyy}-${mm}-${dd}`;
       const dayName = dayNames[d.getDay()];
+      const shortDay = shortDayNames[d.getDay()];
       const monthName = monthNames[d.getMonth()];
       let label: string;
-      if (i === 0) label = `Today, ${dayName}`;
-      else if (i === 1) label = `Tomorrow, ${dayName}`;
+      if (i === 0) label = `Today (${shortDay}, ${monthName} ${d.getDate()})`;
+      else if (i === 1) label = `Tomorrow (${shortDay}, ${monthName} ${d.getDate()})`;
       else label = `${dayName}, ${monthName} ${d.getDate()}`;
       opts.push({ value, label });
     }
@@ -885,7 +894,8 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
     source?: 'QR' | 'MANUAL' | 'TIMETABLE' | 'STUDENT' | 'FACULTY OVERRIDE' | 'ADMIN OVERRIDE' | 'BOOKING',
     reservedUntil?: string | null,
     startTime?: string | null,
-    endTime?: string | null
+    endTime?: string | null,
+    date?: string | null
   ): { success: boolean; error?: string } => {
     // 1. Resilient room lookup matching exact ID, clean alphanumeric ID, or clean roomNumber
     const cleanKey = (roomId || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
@@ -1002,6 +1012,7 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
             reservedStart: newStatus === 'RESERVED' ? (startTime || r.reservedStart || null) : null,
             reservedEnd: newStatus === 'RESERVED' ? (endTime || effectiveReservedUntil || r.reservedEnd || null) : null,
             reservedUntil: newStatus === 'RESERVED' ? effectiveReservedUntil : null,
+            reservationDate: newStatus === 'RESERVED' ? (date || r.reservationDate || null) : null,
           };
         }
         return r;
@@ -1074,6 +1085,31 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
     if (endMins <= startMins) {
       showToast('End time must be after start time', 'error');
       return false;
+    }
+
+    // Operating hours check: 9:00 AM (540m) to 4:00 PM (960m)
+    if (startMins < 9 * 60 || endMins > 16 * 60) {
+      showToast('Reservations are only allowed between 9:00 AM and 4:00 PM', 'error');
+      return false;
+    }
+
+    // Real current local time validation for Today
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const localToday = `${yyyy}-${mm}-${dd}`;
+
+    if (date === localToday) {
+      const currentMins = now.getHours() * 60 + now.getMinutes();
+      if (currentMins >= 16 * 60) {
+        showToast("Today's booking hours (9:00 AM – 4:00 PM) have closed. Please select a future date.", 'error');
+        return false;
+      }
+      if (startMins < currentMins) {
+        showToast('Cannot book a time that has already passed today', 'error');
+        return false;
+      }
     }
 
     // Check for overlapping reservations
@@ -1539,6 +1575,7 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
     selectedRoom,
     updateRoomStatus,
     bookVacantRoom,
+    checkOverlap,
     generateDateOptions,
     adminOverrideStatus,
     addRoom,
