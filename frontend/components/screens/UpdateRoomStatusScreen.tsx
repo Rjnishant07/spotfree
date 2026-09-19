@@ -10,12 +10,19 @@ export const UpdateRoomStatusScreen: React.FC = () => {
   const { selectedRoom, updateRoomStatus, navigate, currentRole, canUserOverrideRoom } = useSpotFree();
 
   const r = selectedRoom;
+  // Default start time to current real local time HH:MM
+  const nowHHMM = (() => {
+    const n = new Date();
+    return `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`;
+  })();
   const [chosenStatus, setChosenStatus] = useState<RoomStatus>(
     r ? (r.status === 'NO INFORMATION' ? 'VACANT' : r.status) : 'VACANT'
   );
-  const [reservedUntil, setReservedUntil] = useState<string>(r?.reservedEnd || '02:30 PM');
-  const [startTime, setStartTime] = useState<string>(r?.reservedStart || '11:00 AM');
-  const [endTime, setEndTime] = useState<string>(r?.reservedEnd || '02:30 PM');
+  const [reservedUntil, setReservedUntil] = useState<string>(r?.reservedEnd || '');
+  const [startTime, setStartTime] = useState<string>(
+    r?.reservedStart ? r.reservedStart : nowHHMM
+  );
+  const [endTime, setEndTime] = useState<string>(r?.reservedEnd || '');
   const [note, setNote] = useState<string>('Updated via mobile client');
 
   if (!r) {
@@ -283,7 +290,7 @@ export const UpdateRoomStatusScreen: React.FC = () => {
                   <label className="text-[11px] font-bold text-amber-900 uppercase">
                     Reservation Window
                   </label>
-                  <span className="text-[10px] text-amber-700 font-medium">Start & End Hours</span>
+                  <span className="text-[10px] text-amber-700 font-medium">Start &amp; End Time</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -293,11 +300,10 @@ export const UpdateRoomStatusScreen: React.FC = () => {
                     </label>
                     <input
                       id="start-time-input"
-                      type="text"
+                      type="time"
                       value={startTime}
                       onChange={(e) => setStartTime(e.target.value)}
                       disabled={!authCheck.allowed}
-                      placeholder="e.g. 11:00 AM"
                       className="w-full text-xs p-2 rounded-lg bg-white border border-amber-300 font-bold text-amber-950 focus:outline-none"
                     />
                   </div>
@@ -307,41 +313,15 @@ export const UpdateRoomStatusScreen: React.FC = () => {
                     </label>
                     <input
                       id="end-time-input"
-                      type="text"
+                      type="time"
                       value={endTime}
                       onChange={(e) => {
                         setEndTime(e.target.value);
                         setReservedUntil(e.target.value);
                       }}
                       disabled={!authCheck.allowed}
-                      placeholder="e.g. 02:30 PM"
                       className="w-full text-xs p-2 rounded-lg bg-white border border-amber-300 font-bold text-amber-950 focus:outline-none"
                     />
-                  </div>
-                </div>
-
-                {/* Quick Presets */}
-                <div className="flex flex-col gap-1 pt-1 border-t border-amber-200/60">
-                  <label className="text-[10px] font-semibold text-amber-800">Quick End Time Presets</label>
-                  <div className="grid grid-cols-4 gap-1">
-                    {['12:30 PM', '01:30 PM', '02:30 PM', '04:00 PM'].map((t) => (
-                      <button
-                        key={t}
-                        type="button"
-                        disabled={!authCheck.allowed}
-                        onClick={() => {
-                          setEndTime(t);
-                          setReservedUntil(t);
-                        }}
-                        className={`py-1 text-[10px] font-bold rounded-md border transition-all ${
-                          endTime === t
-                            ? 'bg-amber-600 text-white border-amber-700 shadow-2xs'
-                            : 'bg-white text-amber-900 border-amber-300 hover:bg-amber-100/50'
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    ))}
                   </div>
                 </div>
               </div>

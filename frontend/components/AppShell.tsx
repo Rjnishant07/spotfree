@@ -82,7 +82,7 @@ export const AppShell: React.FC<AppShellProps> = ({ isAuth, children }) => {
   return (
     <div className="spotfree-canvas min-h-screen w-full flex justify-center items-start">
       <div className="w-full max-w-[430px] min-h-screen bg-[#f8f9ff] flex flex-col relative shadow-2xl overflow-x-hidden">
-        <main className="flex-1 flex flex-col">{children}</main>
+        <main className="flex-1 flex flex-col min-w-0 w-full max-w-full overflow-x-hidden">{children}</main>
         {!isAuth && <BottomNavigation />}
       </div>
 

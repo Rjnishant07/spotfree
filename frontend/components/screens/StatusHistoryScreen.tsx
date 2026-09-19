@@ -260,6 +260,7 @@ export const StatusHistoryScreen: React.FC = () => {
     adminOverrideStatus,
     updateRoomStatus,
     showToast,
+    generateDateOptions,
   } = useSpotFree();
 
   const [search, setSearch] = useState<string>('');
@@ -275,15 +276,25 @@ export const StatusHistoryScreen: React.FC = () => {
   const [selectedBookRoom, setSelectedBookRoom] = useState<string>(
     vacantRooms[0]?.id || ''
   );
-  const [bookDate, setBookDate] = useState<string>('Today, Mon');
-  const [bookTime, setBookTime] = useState<string>('11:00 AM');
-  const [bookDuration, setBookDuration] = useState<string>('1 Hour');
+  // Default date = today as YYYY-MM-DD
+  const todayValue = (() => {
+    const n = new Date();
+    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+  })();
+  const nowHHMM = (() => {
+    const n = new Date();
+    return `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`;
+  })();
+  const [bookDate, setBookDate] = useState<string>(todayValue);
+  const [bookStartTime, setBookStartTime] = useState<string>(nowHHMM);
+  const [bookEndTime, setBookEndTime] = useState<string>('');
 
   // Admin Override Modal State
   const [overrideItem, setOverrideItem] = useState<StatusHistoryItem | null>(null);
+  const [overrideDate, setOverrideDate] = useState<string>(todayValue);
   const [overrideStatus, setOverrideStatus] = useState<RoomStatus>('RESERVED');
-  const [overrideStartTime, setOverrideStartTime] = useState<string>('10:30 AM');
-  const [overrideEndTime, setOverrideEndTime] = useState<string>('01:45 PM');
+  const [overrideStartTime, setOverrideStartTime] = useState<string>('');
+  const [overrideEndTime, setOverrideEndTime] = useState<string>('');
   const [isManualStart, setIsManualStart] = useState<boolean>(false);
   const [isManualEnd, setIsManualEnd] = useState<boolean>(false);
   const [timeValidationError, setTimeValidationError] = useState<string>('');
@@ -332,6 +343,12 @@ export const StatusHistoryScreen: React.FC = () => {
       return;
     }
     setSelectedBookRoom(vacantRooms[0].id);
+    const n = new Date();
+    const today = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+    const hhmm = `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`;
+    setBookDate(today);
+    setBookStartTime(hhmm);
+    setBookEndTime('');
     setShowBookModal(true);
   };
 
@@ -341,8 +358,11 @@ export const StatusHistoryScreen: React.FC = () => {
       showToast('Please select a vacant room to book', 'error');
       return;
     }
-
-    const success = bookVacantRoom(selectedBookRoom, bookDate, bookTime, bookDuration);
+    if (!bookStartTime || !bookEndTime) {
+      showToast('Please enter both start and end times', 'error');
+      return;
+    }
+    const success = bookVacantRoom(selectedBookRoom, bookDate, bookStartTime, bookEndTime);
     if (success) {
       setShowBookModal(false);
     }
@@ -352,8 +372,11 @@ export const StatusHistoryScreen: React.FC = () => {
     setOverrideItem(item);
     const nextStatus = item.to === 'VACANT' ? 'RESERVED' : 'VACANT';
     setOverrideStatus(nextStatus);
-    setOverrideStartTime('10:30 AM');
-    setOverrideEndTime('01:45 PM');
+    const n = new Date();
+    const today = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+    setOverrideDate(today);
+    setOverrideStartTime('');
+    setOverrideEndTime('');
     setIsManualStart(false);
     setIsManualEnd(false);
     setTimeValidationError('');
@@ -433,7 +456,8 @@ export const StatusHistoryScreen: React.FC = () => {
         finalEnd || null,
         overrideNote,
         finalStart,
-        finalEnd
+        finalEnd,
+        overrideDate || undefined
       );
       setOverrideItem(null);
     } else {
@@ -793,51 +817,38 @@ export const StatusHistoryScreen: React.FC = () => {
                     onChange={(e) => setBookDate(e.target.value)}
                     className="w-full text-xs p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 focus:outline-none focus:bg-white"
                   >
-                    <option value="Today, Mon">Today, Mon</option>
-                    <option value="Tomorrow, Tue">Tomorrow, Tue</option>
-                    <option value="Wed, Nov 20">Wed, Nov 20</option>
-                    <option value="Thu, Nov 21">Thu, Nov 21</option>
-                    <option value="Fri, Nov 22">Fri, Nov 22</option>
+                    {generateDateOptions().map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
                   </select>
                 </div>
 
-                {/* Start Time & Duration */}
+                {/* Start Time & End Time */}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold text-slate-600 uppercase">
                       Start Time
                     </label>
-                    <select
-                      value={bookTime}
-                      onChange={(e) => setBookTime(e.target.value)}
+                    <input
+                      type="time"
+                      value={bookStartTime}
+                      onChange={(e) => setBookStartTime(e.target.value)}
+                      required
                       className="w-full text-xs p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 focus:outline-none focus:bg-white"
-                    >
-                      <option value="09:00 AM">09:00 AM</option>
-                      <option value="10:00 AM">10:00 AM</option>
-                      <option value="11:00 AM">11:00 AM</option>
-                      <option value="11:30 AM">11:30 AM</option>
-                      <option value="01:00 PM">01:00 PM</option>
-                      <option value="02:00 PM">02:00 PM</option>
-                      <option value="03:00 PM">03:00 PM</option>
-                      <option value="04:00 PM">04:00 PM</option>
-                    </select>
+                    />
                   </div>
 
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold text-slate-600 uppercase">
-                      Duration
+                      End Time
                     </label>
-                    <select
-                      value={bookDuration}
-                      onChange={(e) => setBookDuration(e.target.value)}
+                    <input
+                      type="time"
+                      value={bookEndTime}
+                      onChange={(e) => setBookEndTime(e.target.value)}
+                      required
                       className="w-full text-xs p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 focus:outline-none focus:bg-white"
-                    >
-                      <option value="30 Minutes">30 Minutes</option>
-                      <option value="45 Minutes">45 Minutes</option>
-                      <option value="1 Hour">1 Hour</option>
-                      <option value="1.5 Hours">1.5 Hours</option>
-                      <option value="2 Hours">2 Hours</option>
-                    </select>
+                    />
                   </div>
                 </div>
 
@@ -1012,120 +1023,61 @@ export const StatusHistoryScreen: React.FC = () => {
                           >
                             {overrideStatus === 'RESERVED' ? 'Reservation Window *' : 'Session Window (Optional)'}
                           </span>
-                          {overrideStartTime && overrideEndTime && (
-                            <span className="text-[10px] font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded-md border border-slate-200/80 shadow-2xs">
-                              {overrideStartTime} → {overrideEndTime}
-                            </span>
-                          )}
+                        </div>
+
+                        {/* Date */}
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[10px] font-bold text-slate-600 uppercase">Date</label>
+                          <select
+                            value={overrideDate}
+                            onChange={(e) => setOverrideDate(e.target.value)}
+                            className={`w-full text-xs p-2 rounded-lg bg-white border border-slate-300 font-semibold text-slate-900 focus:outline-none shadow-2xs ${
+                              isAdmin ? 'focus:border-purple-500' : 'focus:border-blue-500'
+                            }`}
+                          >
+                            {generateDateOptions().map((opt) => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                          </select>
                         </div>
 
                         <div className="grid grid-cols-2 gap-2">
                           {/* START TIME */}
                           <div className="flex flex-col gap-1">
-                            <div className="flex items-center justify-between">
-                              <label className="text-[10px] font-bold text-slate-600 uppercase">
-                                Start {overrideStatus === 'RESERVED' && <span className="text-rose-600">*</span>}
-                              </label>
-                              <button
-                                type="button"
-                                onClick={() => setIsManualStart(!isManualStart)}
-                                className={`text-[10px] font-semibold flex items-center gap-0.5 cursor-pointer ${
-                                  isAdmin ? 'text-purple-700 hover:text-purple-900' : 'text-blue-700 hover:text-blue-900'
-                                }`}
-                                title={isManualStart ? 'Switch to time dropdown' : 'Enter time manually'}
-                              >
-                                <span className="material-symbols-outlined text-[11px]">
-                                  {isManualStart ? 'list' : 'edit'}
-                                </span>
-                                <span>{isManualStart ? 'Select' : 'Manual'}</span>
-                              </button>
-                            </div>
-
-                            {isManualStart ? (
-                              <input
-                                type="text"
-                                value={overrideStartTime}
-                                onChange={(e) => {
-                                  setOverrideStartTime(e.target.value);
-                                  setTimeValidationError('');
-                                }}
-                                placeholder="10:30 AM"
-                                className={`w-full text-xs p-2 rounded-lg bg-white border border-slate-300 font-bold text-slate-900 focus:outline-none shadow-2xs ${
-                                  isAdmin ? 'focus:border-purple-500' : 'focus:border-blue-500'
-                                }`}
-                              />
-                            ) : (
-                              <select
-                                value={overrideStartTime}
-                                onChange={(e) => {
-                                  setOverrideStartTime(e.target.value);
-                                  setTimeValidationError('');
-                                }}
-                                className={`w-full text-xs p-2 rounded-lg bg-white border border-slate-300 font-bold text-slate-900 focus:outline-none shadow-2xs ${
-                                  isAdmin ? 'focus:border-purple-500' : 'focus:border-blue-500'
-                                }`}
-                              >
-                                {ADMIN_TIME_SLOTS.map((t) => (
-                                  <option key={t} value={t}>
-                                    {t}
-                                  </option>
-                                ))}
-                              </select>
-                            )}
+                            <label className="text-[10px] font-bold text-slate-600 uppercase">
+                              Start {overrideStatus === 'RESERVED' && <span className="text-rose-600">*</span>}
+                            </label>
+                            <input
+                              type="time"
+                              value={overrideStartTime}
+                              onChange={(e) => {
+                                setOverrideStartTime(e.target.value);
+                                setTimeValidationError('');
+                              }}
+                              placeholder="HH:MM"
+                              className={`w-full text-xs p-2 rounded-lg bg-white border border-slate-300 font-bold text-slate-900 focus:outline-none shadow-2xs ${
+                                isAdmin ? 'focus:border-purple-500' : 'focus:border-blue-500'
+                              }`}
+                            />
                           </div>
 
                           {/* END TIME */}
                           <div className="flex flex-col gap-1">
-                            <div className="flex items-center justify-between">
-                              <label className="text-[10px] font-bold text-slate-600 uppercase">
-                                End {overrideStatus === 'RESERVED' && <span className="text-rose-600">*</span>}
-                              </label>
-                              <button
-                                type="button"
-                                onClick={() => setIsManualEnd(!isManualEnd)}
-                                className={`text-[10px] font-semibold flex items-center gap-0.5 cursor-pointer ${
-                                  isAdmin ? 'text-purple-700 hover:text-purple-900' : 'text-blue-700 hover:text-blue-900'
-                                }`}
-                                title={isManualEnd ? 'Switch to time dropdown' : 'Enter time manually'}
-                              >
-                                <span className="material-symbols-outlined text-[11px]">
-                                  {isManualEnd ? 'list' : 'edit'}
-                                </span>
-                                <span>{isManualEnd ? 'Select' : 'Manual'}</span>
-                              </button>
-                            </div>
-
-                            {isManualEnd ? (
-                              <input
-                                type="text"
-                                value={overrideEndTime}
-                                onChange={(e) => {
-                                  setOverrideEndTime(e.target.value);
-                                  setTimeValidationError('');
-                                }}
-                                placeholder="01:45 PM"
-                                className={`w-full text-xs p-2 rounded-lg bg-white border border-slate-300 font-bold text-slate-900 focus:outline-none shadow-2xs ${
-                                  isAdmin ? 'focus:border-purple-500' : 'focus:border-blue-500'
-                                }`}
-                              />
-                            ) : (
-                              <select
-                                value={overrideEndTime}
-                                onChange={(e) => {
-                                  setOverrideEndTime(e.target.value);
-                                  setTimeValidationError('');
-                                }}
-                                className={`w-full text-xs p-2 rounded-lg bg-white border border-slate-300 font-bold text-slate-900 focus:outline-none shadow-2xs ${
-                                  isAdmin ? 'focus:border-purple-500' : 'focus:border-blue-500'
-                                }`}
-                              >
-                                {ADMIN_TIME_SLOTS.map((t) => (
-                                  <option key={t} value={t}>
-                                    {t}
-                                  </option>
-                                ))}
-                              </select>
-                            )}
+                            <label className="text-[10px] font-bold text-slate-600 uppercase">
+                              End {overrideStatus === 'RESERVED' && <span className="text-rose-600">*</span>}
+                            </label>
+                            <input
+                              type="time"
+                              value={overrideEndTime}
+                              onChange={(e) => {
+                                setOverrideEndTime(e.target.value);
+                                setTimeValidationError('');
+                              }}
+                              placeholder="HH:MM"
+                              className={`w-full text-xs p-2 rounded-lg bg-white border border-slate-300 font-bold text-slate-900 focus:outline-none shadow-2xs ${
+                                isAdmin ? 'focus:border-purple-500' : 'focus:border-blue-500'
+                              }`}
+                            />
                           </div>
                         </div>
 

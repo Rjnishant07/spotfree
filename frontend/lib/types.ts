@@ -34,6 +34,7 @@ export interface Room {
   reservedEnd?: string | null;
   availableUntil?: string;
   reservedUntil?: string | null;
+  reservationDate?: string | null; // YYYY-MM-DD date for the reservation
   qrId?: string;
   timeText: string;
   amenities: string[];

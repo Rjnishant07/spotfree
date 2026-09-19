@@ -81,15 +81,17 @@ interface SpotFreeContextType {
     roomId: string,
     date: string,
     startTime: string,
-    duration: string
+    endTime: string
   ) => boolean;
+  generateDateOptions: () => { value: string; label: string }[];
   adminOverrideStatus: (
     roomId: string,
     newStatus: RoomStatus,
     reservedUntil?: string | null,
     note?: string,
     startTime?: string,
-    endTime?: string
+    endTime?: string,
+    date?: string
   ) => void;
   addRoom: (newRoom: {
     id: string;
@@ -328,7 +330,97 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
   const [navHistory, setNavHistory] = useState<ViewScreen[]>([]);
 
   // Centralized Room State
+  // Real-time clock for reservation expiry (separate from timetable simulatedHour)
+  const [currentTime, setCurrentTime] = useState<Date>(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Generate next 7 days as selectable date options
+  const generateDateOptions = useCallback((): { value: string; label: string }[] => {
+    const opts: { value: string; label: string }[] = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const value = `${yyyy}-${mm}-${dd}`;
+      const dayName = dayNames[d.getDay()];
+      const monthName = monthNames[d.getMonth()];
+      let label: string;
+      if (i === 0) label = `Today, ${dayName}`;
+      else if (i === 1) label = `Tomorrow, ${dayName}`;
+      else label = `${dayName}, ${monthName} ${d.getDate()}`;
+      opts.push({ value, label });
+    }
+    return opts;
+  }, []);
+
+  // Parse a 12-hour time string like "02:30 PM" into total minutes since midnight
+  const parseTimeToMinutes = useCallback((timeStr?: string | null): number | null => {
+    if (!timeStr) return null;
+    // Handle "HH:MM" (24-hr from <input type="time">)
+    const hhmm = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+    if (hhmm) {
+      return parseInt(hhmm[1], 10) * 60 + parseInt(hhmm[2], 10);
+    }
+    // Handle "HH:MM AM/PM"
+    const ampm = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (ampm) {
+      let h = parseInt(ampm[1], 10);
+      const m = parseInt(ampm[2], 10);
+      const mer = ampm[3].toUpperCase();
+      if (mer === 'PM' && h < 12) h += 12;
+      if (mer === 'AM' && h === 12) h = 0;
+      return h * 60 + m;
+    }
+    return null;
+  }, []);
+
+  // Format "HH:MM" (from <input type="time">) to "HH:MM AM/PM"
+  const formatTimeTo12Hr = useCallback((timeStr: string): string => {
+    const m = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return timeStr; // already formatted or empty
+    let h = parseInt(m[1], 10);
+    const min = m[2];
+    const mer = h >= 12 ? 'PM' : 'AM';
+    if (h > 12) h -= 12;
+    if (h === 0) h = 12;
+    return `${String(h).padStart(2, '0')}:${min} ${mer}`;
+  }, []);
+
   const [rooms, setRooms] = useState<Room[]>(INITIAL_ROOMS);
+
+  // Check for overlapping reservations for a given room on a given date
+  const checkOverlap = useCallback((
+    roomId: string,
+    date: string,
+    startMinutes: number,
+    endMinutes: number
+  ): { overlapping: boolean; conflictDesc?: string } => {
+    const target = rooms.find(r => r.id === roomId);
+    if (!target || target.status !== 'RESERVED') return { overlapping: false };
+    if (target.reservationDate && target.reservationDate !== date) return { overlapping: false };
+    const existStart = parseTimeToMinutes(target.reservedStart);
+    const existEnd = parseTimeToMinutes(target.reservedEnd);
+    if (existStart === null || existEnd === null) return { overlapping: false };
+    // Overlap: new start < existing end AND new end > existing start
+    if (startMinutes < existEnd && endMinutes > existStart) {
+      return {
+        overlapping: true,
+        conflictDesc: `${target.reservedStart} – ${target.reservedEnd}`,
+      };
+    }
+    return { overlapping: false };
+  }, [rooms, parseTimeToMinutes]);
+
+
   const [selectedRoomId, setSelectedRoomId] = useState<string>('CB501');
 
   // Filters
@@ -953,8 +1045,8 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
   const bookVacantRoom = useCallback((
     roomId: string,
     date: string,
-    startTime: string,
-    duration: string
+    startTime: string,  // "HH:MM" (24-hr from input[type=time]) or "HH:MM AM/PM"
+    endTime: string     // "HH:MM" (24-hr from input[type=time]) or "HH:MM AM/PM"
   ): boolean => {
     const cleanKey = (roomId || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     const target = rooms.find(r => {
@@ -968,15 +1060,33 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
       return false;
     }
 
-    // Booking eligibility rule:
-    // A room's booking availability depends ONLY on its CURRENT STATUS.
-    // If room.status === 'VACANT', then ANY user (Student, Faculty, Admin) can book it,
-    // regardless of who last updated it, currentAuthority, updatedRole, previous owner,
-    // previous booking owner, or override source.
+    // Normalize times to 12-hr display format
+    const startDisplay = formatTimeTo12Hr(startTime);
+    const endDisplay = formatTimeTo12Hr(endTime);
+
+    // Validate time range
+    const startMins = parseTimeToMinutes(startDisplay);
+    const endMins = parseTimeToMinutes(endDisplay);
+    if (startMins === null || endMins === null) {
+      showToast('Please enter valid start and end times', 'error');
+      return false;
+    }
+    if (endMins <= startMins) {
+      showToast('End time must be after start time', 'error');
+      return false;
+    }
+
+    // Check for overlapping reservations
+    const overlap = checkOverlap(roomId, date, startMins, endMins);
+    if (overlap.overlapping) {
+      showToast(`Room already reserved ${overlap.conflictDesc} on this date`, 'error');
+      return false;
+    }
+
+    // Booking eligibility: any user can book a VACANT room
     const userAuthority = normalizeRoleToAuthority(currentUser.role || currentRole);
     const userStr = currentUser.name || (userAuthority === 'FACULTY' ? 'Faculty Member' : userAuthority === 'ADMIN' ? 'Facility Administrator' : 'Student Member');
-    const bookingNote = `Booked for ${date} at ${startTime} (${duration})`;
-    const reservedUntilText = startTime ? `${startTime} (+${duration})` : '02:30 PM';
+    const bookingNote = `Booked for ${date} at ${startDisplay} – ${endDisplay}`;
     const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     const newHistoryItem: StatusHistoryItem = {
@@ -995,6 +1105,8 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
       from: 'VACANT',
       to: 'RESERVED',
       by: userStr,
+      startTime: startDisplay,
+      endTime: endDisplay,
     };
 
     // Prepend to history without deleting any previous events
@@ -1023,10 +1135,11 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
             updatedBy: userStr,
             updatedRole: userAuthority,
             updatedAt: nowTimeStr,
-            reservedStart: startTime || null,
-            reservedEnd: reservedUntilText,
-            timeText: `Reserved: ${bookingNote}`,
-            reservedUntil: reservedUntilText,
+            reservedStart: startDisplay,
+            reservedEnd: endDisplay,
+            reservedUntil: endDisplay,
+            reservationDate: date,
+            timeText: `Reserved: ${startDisplay} – ${endDisplay} (${date})`,
           };
         }
         return r;
@@ -1034,7 +1147,7 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
     );
 
     return true;
-  }, [rooms, currentUser, currentRole, showToast]);
+  }, [rooms, currentUser, currentRole, showToast, formatTimeTo12Hr, parseTimeToMinutes, checkOverlap]);
 
   // Admin status override: override any room's status with explicit ADMIN OVERRIDE source
   const adminOverrideStatus = useCallback((
@@ -1043,7 +1156,8 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
     reservedUntil?: string | null,
     note?: string,
     startTime?: string,
-    endTime?: string
+    endTime?: string,
+    date?: string
   ) => {
     const cleanKey = (roomId || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     const target = rooms.find(r => {
@@ -1133,6 +1247,7 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
             timeText,
             availableUntil: newStatus === 'VACANT' ? 'Open' : r.availableUntil,
             reservedUntil: newStatus === 'RESERVED' ? effectiveReservedUntil : null,
+            reservationDate: (newStatus === 'RESERVED' || newStatus === 'OCCUPIED') ? (date || null) : null,
           };
         }
         return r;
@@ -1165,48 +1280,55 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
     return null;
   }, []);
 
-  // Monitor reserved rooms: if reservation period has ended, transition back to VACANT
+  // Monitor reserved rooms using REAL wall-clock time: auto-expire to VACANT when end time passes
   useEffect(() => {
+    const now = currentTime;
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
     setRooms(prevRooms => {
       let hasChange = false;
       const updatedRooms = prevRooms.map(r => {
         if (r.status === 'RESERVED' && r.reservedUntil) {
-          const expiryHour = parseTimeToDecimalHour(r.reservedUntil);
-          if (expiryHour !== null && simulatedHour >= expiryHour) {
+          // Only expire if reservation date matches today (or no date set — legacy)
+          const reservationDate = r.reservationDate || todayStr;
+          if (reservationDate !== todayStr) return r; // future booking, not yet active
+
+          const endMins = parseTimeToMinutes(r.reservedUntil);
+          if (endMins !== null && nowMinutes >= endMins) {
             hasChange = true;
-            // Transition back to VACANT
             const expiredHistoryItem: StatusHistoryItem = {
               id: Date.now() + Math.random(),
               roomNumber: r.roomNumber || r.id,
               previousStatus: 'RESERVED',
               newStatus: 'VACANT',
-              updatedBy: 'Facility Auto-Scheduler',
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              updatedBy: 'Auto-Scheduler',
+              timestamp: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               time: 'Just now',
               source: 'MANUAL',
-              note: `Reservation duration ended at ${r.reservedUntil} • Room released to VACANT`,
+              note: `Reservation ended at ${r.reservedUntil} • Auto-released to VACANT`,
               room: r.id,
               from: 'RESERVED',
               to: 'VACANT',
-              by: 'Facility Auto-Scheduler',
+              by: 'Auto-Scheduler',
             };
-
             setHistory(prevHist => [expiredHistoryItem, ...prevHist]);
-
             return {
               ...r,
               status: 'VACANT' as RoomStatus,
               reservedUntil: null,
+              reservedStart: null,
+              reservedEnd: null,
+              reservationDate: null,
               timeText: 'Available now (Reservation concluded)',
             };
           }
         }
         return r;
       });
-
       return hasChange ? updatedRooms : prevRooms;
     });
-  }, [simulatedHour, parseTimeToDecimalHour]);
+  }, [currentTime, parseTimeToMinutes]);
 
   // Timetable → Room Occupancy Calculation Engine
   useEffect(() => {
@@ -1417,6 +1539,7 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
     selectedRoom,
     updateRoomStatus,
     bookVacantRoom,
+    generateDateOptions,
     adminOverrideStatus,
     addRoom,
     editRoom,

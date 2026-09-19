@@ -15,14 +15,23 @@ export const RoomDetailsScreen: React.FC = () => {
     canUserOverrideRoom,
     currentRole,
     bookVacantRoom,
+    generateDateOptions,
   } = useSpotFree();
   const { effectiveView } = useUIPrefs();
   const isWeb = effectiveView === 'web';
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const [showBookModal, setShowBookModal] = useState<boolean>(false);
-  const [bookDate, setBookDate] = useState<string>('Today');
-  const [bookTime, setBookTime] = useState<string>('11:00 AM');
-  const [bookDuration, setBookDuration] = useState<string>('1 Hour');
+  const todayVal = (() => {
+    const n = new Date();
+    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+  })();
+  const nowHHMM = (() => {
+    const n = new Date();
+    return `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`;
+  })();
+  const [bookDate, setBookDate] = useState<string>(todayVal);
+  const [bookStartTime, setBookStartTime] = useState<string>(nowHHMM);
+  const [bookEndTime, setBookEndTime] = useState<string>('');
   const [bookRemarks, setBookRemarks] = useState<string>('');
 
   const room = selectedRoom;
@@ -338,44 +347,41 @@ export const RoomDetailsScreen: React.FC = () => {
                         onChange={(e) => setBookDate(e.target.value)}
                         className="text-xs p-1.5 rounded-lg bg-white border border-emerald-300 font-bold text-slate-800 focus:outline-none"
                       >
-                        <option value="Today">Today</option>
-                        <option value="Tomorrow">Tomorrow</option>
+                        {generateDateOptions().map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
                       </select>
                     </div>
                     <div className="flex flex-col gap-0.5">
                       <label className="text-[10px] font-bold text-emerald-900 uppercase">Start Time</label>
-                      <select
-                        value={bookTime}
-                        onChange={(e) => setBookTime(e.target.value)}
+                      <input
+                        type="time"
+                        value={bookStartTime}
+                        onChange={(e) => setBookStartTime(e.target.value)}
+                        required
                         className="text-xs p-1.5 rounded-lg bg-white border border-emerald-300 font-bold text-slate-800 focus:outline-none"
-                      >
-                        <option value="10:00 AM">10:00 AM</option>
-                        <option value="11:00 AM">11:00 AM</option>
-                        <option value="12:00 PM">12:00 PM</option>
-                        <option value="01:00 PM">01:00 PM</option>
-                        <option value="02:00 PM">02:00 PM</option>
-                        <option value="03:00 PM">03:00 PM</option>
-                      </select>
+                      />
                     </div>
                     <div className="flex flex-col gap-0.5">
-                      <label className="text-[10px] font-bold text-emerald-900 uppercase">Duration</label>
-                      <select
-                        value={bookDuration}
-                        onChange={(e) => setBookDuration(e.target.value)}
+                      <label className="text-[10px] font-bold text-emerald-900 uppercase">End Time</label>
+                      <input
+                        type="time"
+                        value={bookEndTime}
+                        onChange={(e) => setBookEndTime(e.target.value)}
+                        required
                         className="text-xs p-1.5 rounded-lg bg-white border border-emerald-300 font-bold text-slate-800 focus:outline-none"
-                      >
-                        <option value="30 Mins">30 Mins</option>
-                        <option value="1 Hour">1 Hour</option>
-                        <option value="2 Hours">2 Hours</option>
-                        <option value="3 Hours">3 Hours</option>
-                      </select>
+                      />
                     </div>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => {
-                      const ok = bookVacantRoom(room.id, bookDate, bookTime, bookDuration);
+                      if (!bookStartTime || !bookEndTime) {
+                        showToast('Please enter both start and end times', 'error');
+                        return;
+                      }
+                      const ok = bookVacantRoom(room.id, bookDate, bookStartTime, bookEndTime);
                       if (ok) {
                         setShowBookModal(false);
                       }

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 
 /**
  * Unified SpotFree Notification Toast (Dark Green Popup)
@@ -13,10 +14,12 @@ import { useSpotFree } from '@/context/SpotFreeContext';
  * - Automatic dismissal after timeout
  * - Clean teardown on screen transitions
  * - Compact, floating above page content with slide-in animation
- * - Constrained within the 430px app frame
+ * - Constrained within the 430px app frame on mobile view
  */
 export const Toast: React.FC = () => {
   const { toast, dismissToast } = useSpotFree();
+  const { effectiveView } = useUIPrefs();
+  const isMobile = effectiveView === 'mobile';
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [visible, setVisible] = useState(false);
 
@@ -63,12 +66,13 @@ export const Toast: React.FC = () => {
       aria-live="polite"
       style={{
         position: 'fixed',
-        top: visible ? '16px' : '-60px',
+        top: visible ? (isMobile ? '12px' : '16px') : '-80px',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 9999,
-        width: '92%',
-        maxWidth: '360px',
+        width: isMobile ? 'min(calc(100vw - 32px), 398px)' : 'min(92vw, 520px)',
+        maxWidth: isMobile ? 'calc(100% - 32px)' : '520px',
+        boxSizing: 'border-box',
         pointerEvents: 'auto',
         transition: 'top 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease',
         opacity: visible ? 1 : 0,
@@ -78,23 +82,25 @@ export const Toast: React.FC = () => {
         style={{
           background: '#006c49',
           color: '#fff',
-          padding: '10px 14px',
+          padding: '10px 12px 10px 14px',
           borderRadius: '14px',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 108, 73, 0.25)',
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           justifyContent: 'space-between',
           gap: '10px',
           border: '1px solid rgba(52, 211, 153, 0.35)',
           fontSize: '12px',
           fontWeight: 600,
-          lineHeight: 1.4,
+          lineHeight: 1.45,
+          width: '100%',
+          boxSizing: 'border-box',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', minWidth: 0, flex: 1 }}>
           <span
             className="material-symbols-outlined"
-            style={{ fontSize: '18px', flexShrink: 0, color: '#6ee7b7' }}
+            style={{ fontSize: '18px', flexShrink: 0, color: '#6ee7b7', marginTop: '1px' }}
           >
             {toast.icon || 'check_circle'}
           </span>
@@ -103,9 +109,11 @@ export const Toast: React.FC = () => {
               fontSize: '12px',
               fontWeight: 500,
               color: '#fff',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
+              wordBreak: 'break-word',
+              overflowWrap: 'anywhere',
+              whiteSpace: 'normal',
+              minWidth: 0,
+              flex: 1,
             }}
           >
             {toast.msg}
@@ -114,10 +122,11 @@ export const Toast: React.FC = () => {
         <button
           type="button"
           onClick={dismissToast}
+          aria-label="Close notification"
           style={{
             color: 'rgba(255,255,255,0.75)',
             flexShrink: 0,
-            padding: '4px',
+            padding: '2px',
             borderRadius: '8px',
             border: 'none',
             background: 'transparent',
@@ -126,19 +135,20 @@ export const Toast: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'center',
             transition: 'color 0.15s, background 0.15s',
+            marginTop: '1px',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.color = '#fff';
-            e.currentTarget.style.background = 'rgba(6, 78, 59, 0.6)';
+            e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.color = 'rgba(255,255,255,0.75)';
             e.currentTarget.style.background = 'transparent';
           }}
-          aria-label="Close notification"
-          title="Dismiss"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
+          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+            close
+          </span>
         </button>
       </div>
     </div>

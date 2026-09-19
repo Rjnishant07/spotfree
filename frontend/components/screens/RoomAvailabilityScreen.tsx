@@ -48,39 +48,39 @@ export const RoomAvailabilityScreen: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col w-full pb-24 bg-[#f8f9ff]">
+    <div className="flex flex-col w-full min-w-0 max-w-full pb-24 bg-[#f8f9ff] overflow-x-hidden">
       <Header
         title="Room Availability"
         subtitle={`${activeFilterBuilding === 'All' ? 'All Campus Buildings' : activeFilterBuilding + ' Building'} • ${filteredRooms.length} Spaces`}
         showBack={true}
       />
 
-      <main className={isWeb ? 'w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-5' : 'flex flex-col px-4 pt-2.5 pb-28 gap-3.5 w-full max-w-full overflow-x-hidden'}>
+      <main className={isWeb ? 'w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-5 min-w-0' : 'flex flex-col px-4 pt-2.5 pb-28 gap-3.5 w-full max-w-full min-w-0 overflow-x-hidden'}>
         {/* Top Summary Bar & Status Counts */}
-        <section className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold text-slate-800">
+        <section className="flex flex-col gap-2 w-full min-w-0">
+          <div className="flex items-center justify-between gap-2 min-w-0 w-full">
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              <span className="text-xs font-bold text-slate-800 truncate">
                 {activeFilterBuilding === 'All' ? 'Campus-Wide Availability' : `${activeFilterBuilding} Building Status`}
               </span>
             </div>
-            <div className="flex items-center gap-1 bg-white border border-slate-200 px-2.5 py-1 rounded-full text-[11px] font-semibold text-slate-700 shadow-xs">
+            <div className="flex items-center gap-1 bg-white border border-slate-200 px-2.5 py-1 rounded-full text-[11px] font-semibold text-slate-700 shadow-xs shrink-0 whitespace-nowrap">
               <span className="material-symbols-outlined text-xs text-emerald-600">schedule</span>
               <span>{simulatedTimeLabel}</span>
             </div>
           </div>
 
           {/* 3 Status Cards (Dynamic) */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2 w-full min-w-0">
             <button
               onClick={() => setActiveFilterStatus(activeFilterStatus === 'VACANT' ? 'All' : 'VACANT')}
-              className={`p-2.5 rounded-xl shadow-xs border text-center transition-all ${
+              className={`p-2.5 rounded-xl shadow-xs border text-center transition-all min-w-0 cursor-pointer ${
                 activeFilterStatus === 'VACANT'
                   ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-500/20'
-                  : 'bg-white border-slate-200'
+                  : 'bg-white border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">
+              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block truncate">
                 Available
               </span>
               <span className="text-lg font-extrabold text-emerald-800">{stats.vacant}</span>
@@ -88,13 +88,13 @@ export const RoomAvailabilityScreen: React.FC = () => {
 
             <button
               onClick={() => setActiveFilterStatus(activeFilterStatus === 'OCCUPIED' ? 'All' : 'OCCUPIED')}
-              className={`p-2.5 rounded-xl shadow-xs border text-center transition-all ${
+              className={`p-2.5 rounded-xl shadow-xs border text-center transition-all min-w-0 cursor-pointer ${
                 activeFilterStatus === 'OCCUPIED'
                   ? 'bg-rose-50 border-rose-400 ring-2 ring-rose-500/20'
-                  : 'bg-white border-slate-200'
+                  : 'bg-white border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">
+              <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block truncate">
                 Occupied
               </span>
               <span className="text-lg font-extrabold text-rose-800">{stats.occupied}</span>
@@ -102,13 +102,13 @@ export const RoomAvailabilityScreen: React.FC = () => {
 
             <button
               onClick={() => setActiveFilterStatus(activeFilterStatus === 'RESERVED' ? 'All' : 'RESERVED')}
-              className={`p-2.5 rounded-xl shadow-xs border text-center transition-all ${
+              className={`p-2.5 rounded-xl shadow-xs border text-center transition-all min-w-0 cursor-pointer ${
                 activeFilterStatus === 'RESERVED'
                   ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-500/20'
-                  : 'bg-white border-slate-200'
+                  : 'bg-white border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">
+              <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block truncate">
                 Reserved
               </span>
               <span className="text-lg font-extrabold text-amber-800">{stats.reserved}</span>
@@ -117,12 +117,16 @@ export const RoomAvailabilityScreen: React.FC = () => {
         </section>
 
         {/* Building Filter Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
+        <div className={`flex items-center gap-1.5 w-full max-w-full min-w-0 pb-0.5 ${
+          isWeb
+            ? 'flex-wrap'
+            : 'overflow-x-auto overscroll-x-contain touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+        }`}>
           {['All', 'CME', 'CB', 'ICT'].map((bldg) => (
             <button
               key={bldg}
               onClick={() => setActiveFilterBuilding(bldg)}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap shrink-0 cursor-pointer ${
                 activeFilterBuilding === bldg
                   ? 'bg-[#0f172a] text-white shadow-xs'
                   : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
@@ -134,13 +138,17 @@ export const RoomAvailabilityScreen: React.FC = () => {
         </div>
 
         {/* Status and Space Type Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+        <div className={`flex items-center gap-1.5 w-full max-w-full min-w-0 pb-1 ${
+          isWeb
+            ? 'flex-wrap'
+            : 'overflow-x-auto overscroll-x-contain touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+        }`}>
           <button
             onClick={() => setActiveFilterStatus('All')}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
               activeFilterStatus === 'All'
                 ? 'bg-emerald-700 text-white'
-                : 'bg-white border border-slate-200 text-slate-700'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
             All Statuses
@@ -148,10 +156,10 @@ export const RoomAvailabilityScreen: React.FC = () => {
 
           <button
             onClick={() => setActiveFilterType(activeFilterType === 'CLASSROOM' ? 'All' : 'CLASSROOM')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all cursor-pointer ${
               activeFilterType === 'CLASSROOM'
                 ? 'bg-[#0f172a] text-white'
-                : 'bg-white border border-slate-200 text-slate-700'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
             Classrooms
@@ -159,10 +167,10 @@ export const RoomAvailabilityScreen: React.FC = () => {
 
           <button
             onClick={() => setActiveFilterType(activeFilterType === 'LABS' ? 'All' : 'LABS')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all cursor-pointer ${
               activeFilterType === 'LABS'
                 ? 'bg-[#0f172a] text-white'
-                : 'bg-white border border-slate-200 text-slate-700'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
             Labs
@@ -170,10 +178,10 @@ export const RoomAvailabilityScreen: React.FC = () => {
 
           <button
             onClick={() => setActiveFilterType(activeFilterType === 'SEMINAR HALL' ? 'All' : 'SEMINAR HALL')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all cursor-pointer ${
               activeFilterType === 'SEMINAR HALL'
                 ? 'bg-[#0f172a] text-white'
-                : 'bg-white border border-slate-200 text-slate-700'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
             Seminar Hall
@@ -181,10 +189,10 @@ export const RoomAvailabilityScreen: React.FC = () => {
 
           <button
             onClick={() => setActiveFilterType(activeFilterType === 'OFFICES' ? 'All' : 'OFFICES')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all cursor-pointer ${
               activeFilterType === 'OFFICES'
                 ? 'bg-[#0f172a] text-white'
-                : 'bg-white border border-slate-200 text-slate-700'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
             Offices
@@ -192,10 +200,10 @@ export const RoomAvailabilityScreen: React.FC = () => {
 
           <button
             onClick={() => setActiveFloorFilter(activeFloorFilter === 1 ? null : 1)}
-            className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all cursor-pointer ${
               activeFloorFilter === 1
                 ? 'bg-slate-800 text-white'
-                : 'bg-white border border-slate-200 text-slate-700'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
             Floor 1
@@ -203,10 +211,10 @@ export const RoomAvailabilityScreen: React.FC = () => {
 
           <button
             onClick={() => setActiveFloorFilter(activeFloorFilter === 2 ? null : 2)}
-            className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all cursor-pointer ${
               activeFloorFilter === 2
                 ? 'bg-slate-800 text-white'
-                : 'bg-white border border-slate-200 text-slate-700'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
             Floor 2
@@ -214,7 +222,9 @@ export const RoomAvailabilityScreen: React.FC = () => {
 
           <button
             onClick={() => navigate('best-room-req')}
-            className="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-bold flex items-center gap-1 shrink-0 ml-auto"
+            className={`px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer hover:bg-emerald-200 transition-colors ${
+              isWeb ? 'ml-auto' : ''
+            }`}
           >
             <span className="material-symbols-outlined text-xs">auto_awesome</span>
             <span>Suggest</span>
@@ -222,14 +232,14 @@ export const RoomAvailabilityScreen: React.FC = () => {
         </div>
 
         {/* Filter Count Bar */}
-        <div className="flex items-center justify-between text-xs text-slate-500 px-0.5">
-          <span>
+        <div className="flex items-center justify-between text-xs text-slate-500 px-0.5 w-full min-w-0">
+          <span className="truncate">
             Showing <strong className="text-slate-800 font-bold">{filteredRooms.length}</strong> matching spaces
           </span>
           {(activeFilterStatus !== 'All' || activeFilterType !== 'All' || activeFloorFilter !== null || activeFilterBuilding !== 'All') && (
             <button
               onClick={resetFilters}
-              className="text-emerald-700 font-semibold hover:underline text-[11px]"
+              className="text-emerald-700 font-semibold hover:underline text-[11px] shrink-0 ml-2 cursor-pointer"
             >
               Reset Filters
             </button>
@@ -237,7 +247,7 @@ export const RoomAvailabilityScreen: React.FC = () => {
         </div>
 
         {/* Rooms Card Feed */}
-        <div className={isWeb ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5" : "flex flex-col gap-3 w-full"}>
+        <div className={isWeb ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 w-full min-w-0" : "flex flex-col gap-3 w-full max-w-full min-w-0"}>
           {filteredRooms.length === 0 ? (
             <div className="col-span-full p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300 flex flex-col items-center gap-2">
               <span className="material-symbols-outlined text-3xl text-slate-400">room_preferences</span>

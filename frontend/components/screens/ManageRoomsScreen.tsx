@@ -133,10 +133,13 @@ export const ManageRoomsScreen: React.FC = () => {
   const isWeb = effectiveView === 'web';
 
   return (
-    <div className="flex flex-col w-full pb-24 bg-[#f8f9ff]">
+    <div className={`flex flex-col w-full ${isWeb ? 'bg-[#f8f9ff]' : 'pb-24 bg-[#f8f9ff]'}`}>
       <Header title="Manage Rooms" subtitle="Campus Space Allocation" showBack={true} />
 
-      <main className={isWeb ? 'w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-5' : 'flex flex-col px-4 pt-3 pb-8 gap-3.5'}>
+      <main className={isWeb
+        ? 'w-full max-w-[1400px] mx-auto px-6 lg:px-10 py-6 flex flex-col gap-5'
+        : 'flex flex-col px-4 pt-3 pb-8 gap-3.5'
+      }>
         {/* Sub-header Strip */}
         <section className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
@@ -203,45 +206,107 @@ export const ManageRoomsScreen: React.FC = () => {
             <span>Showing {filtered.length} of {rooms.length} rooms</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-            {filtered.map((room) => (
-              <div
-                key={room.id}
-                className="p-3 bg-white rounded-xl border border-slate-200 shadow-xs flex items-center justify-between gap-2"
-              >
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-xs text-slate-900">{room.id}</span>
-                  <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 font-semibold">
-                    {room.building} • Fl {room.floor}
-                  </span>
-                  <StatusBadge status={room.status} size="sm" />
-                </div>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  {room.type} • {room.capacity} seats capacity
-                </p>
-              </div>
+          {isWeb ? (
+            /* ── WEB / DESKTOP GRID ── */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filtered.map((room) => (
+                <div
+                  key={room.id}
+                  className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col gap-3 min-w-0 hover:shadow-md transition-shadow"
+                >
+                  {/* Card Top: Room ID + Status Badge */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <span className="font-black text-base text-slate-900 leading-tight truncate">
+                        {room.id}
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-500">
+                        {room.building} Building · Floor {room.floor}
+                      </span>
+                    </div>
+                    <div className="shrink-0 mt-0.5">
+                      <StatusBadge status={room.status} size="sm" />
+                    </div>
+                  </div>
 
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  onClick={() => {
-                    setSelectedRoomId(room.id);
-                    navigate('room-details');
-                  }}
-                  className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition-colors"
-                >
-                  View
-                </button>
-                <button
-                  onClick={() => handleOpenEdit(room.id)}
-                  className="px-2.5 py-1.5 bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition-colors"
-                >
-                  Edit
-                </button>
-              </div>
+                  {/* Card Mid: Type + Capacity */}
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-sm text-slate-400 shrink-0">
+                      {getTypeIcon(room.type as string)}
+                    </span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[11px] font-bold text-slate-700 truncate">
+                        {room.type}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        Capacity: {room.capacity} seats
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card Bottom: Action Buttons */}
+                  <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                    <button
+                      onClick={() => {
+                        setSelectedRoomId(room.id);
+                        navigate('room-details');
+                      }}
+                      className="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition-colors text-center cursor-pointer"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleOpenEdit(room.id)}
+                      className="flex-1 py-1.5 bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition-colors text-center cursor-pointer"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-          </div>
+          ) : (
+            /* ── MOBILE COMPACT LIST ── */
+            <div className="flex flex-col gap-2">
+              {filtered.map((room) => (
+                <div
+                  key={room.id}
+                  className="p-3 bg-white rounded-xl border border-slate-200 shadow-xs flex items-center justify-between gap-2"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-xs text-slate-900">{room.id}</span>
+                      <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 font-semibold shrink-0">
+                        {room.building} · Fl {room.floor}
+                      </span>
+                      <StatusBadge status={room.status} size="sm" />
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                      {room.type} · {room.capacity} seats
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => {
+                        setSelectedRoomId(room.id);
+                        navigate('room-details');
+                      }}
+                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleOpenEdit(room.id)}
+                      className="px-2.5 py-1.5 bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Add Room Modal */}

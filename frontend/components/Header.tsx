@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
 import { useUIPrefs } from '@/context/UIPrefsContext';
 
@@ -16,10 +16,20 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, showBack = fals
     goBack,
     currentUser,
     unreadNotificationCount,
-    simulatedTimeLabel,
   } = useSpotFree();
   const { effectiveView, resolvedTheme } = useUIPrefs();
   const isDark = resolvedTheme === 'dark';
+
+  // Real browser clock — updates every minute
+  const [realTime, setRealTime] = useState<string>(() =>
+    new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  );
+  useEffect(() => {
+    const tick = setInterval(() => {
+      setRealTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    }, 60000);
+    return () => clearInterval(tick);
+  }, []);
 
   const isWeb = effectiveView === 'web';
   const displayTitle = isWeb && title === 'SpotFree HIT' ? 'Dashboard' : title;
@@ -97,7 +107,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, showBack = fals
               </span>
               <span className={isDark ? 'text-[#64748b]' : 'text-slate-300'}>•</span>
               <span className={`font-medium ${isDark ? 'text-[#6ee7b7]' : 'text-slate-500'}`}>
-                {simulatedTimeLabel || 'Live Sync'}
+                {realTime}
               </span>
             </div>
 
