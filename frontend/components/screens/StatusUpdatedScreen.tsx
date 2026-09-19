@@ -35,7 +35,7 @@ export const StatusUpdatedScreen: React.FC = () => {
         showBack={false}
       />
 
-      <main className="flex flex-col px-4 pt-4 pb-8 gap-4 items-center text-center">
+      <main className="flex flex-col max-w-xl mx-auto w-full px-4 sm:px-6 pt-6 pb-12 gap-4 items-center text-center">
         {/* Success Confirmation Icon */}
         <div className="relative flex items-center justify-center pt-2">
           <div className="w-16 h-16 rounded-2xl bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-600 shadow-sm">

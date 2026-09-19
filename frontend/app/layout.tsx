@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { UIPrefsProvider } from '@/context/UIPrefsContext';
+
+// Runs before first paint so the saved / system theme is applied without a flash.
+const themeInitScript = `(function(){try{var t=localStorage.getItem('spotfree_theme')||'system';var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.dataset.theme=d?'dark':'light';r.style.colorScheme=d?'dark':'light';}catch(e){}})();`;
 
 export const metadata: Metadata = {
   title: 'SpotFree — Heritage Institute of Technology',
@@ -20,8 +24,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -33,11 +38,8 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-slate-100 flex justify-center items-start text-slate-900 antialiased">
-        {/* Mobile viewport frame (430px max width for mobile-first experience, responsive on desktop) */}
-        <div className="w-full max-w-[430px] min-h-screen bg-[#f8f9ff] flex flex-col relative shadow-2xl overflow-x-hidden">
-          {children}
-        </div>
+      <body className="min-h-screen text-slate-900 antialiased">
+        <UIPrefsProvider>{children}</UIPrefsProvider>
       </body>
     </html>
   );

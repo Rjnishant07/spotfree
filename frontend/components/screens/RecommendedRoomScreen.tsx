@@ -2,11 +2,14 @@
 
 import React from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 import { StatusBadge } from '../StatusBadge';
 
 export const RecommendedRoomScreen: React.FC = () => {
   const { recommendedRoom, rooms, setSelectedRoomId, navigate } = useSpotFree();
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
 
   const r = recommendedRoom || rooms.find((rm) => rm.status === 'VACANT') || rooms[0];
 
@@ -28,7 +31,7 @@ export const RecommendedRoomScreen: React.FC = () => {
         showBack={true}
       />
 
-      <main className="flex flex-col px-4 pt-3 pb-8 gap-3.5">
+      <main className={isWeb ? 'w-full max-w-3xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4' : 'flex flex-col px-4 pt-3 pb-8 gap-3.5'}>
         {/* Match Confirmation Bar */}
         <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2">

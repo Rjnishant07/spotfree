@@ -2,10 +2,13 @@
 
 import React, { useState } from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 
 export const BestRoomRequirementsScreen: React.FC = () => {
   const { bestRoomCriteria, setBestRoomCriteria, calculateRecommendedRoom, navigate } = useSpotFree();
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
 
   const [purpose, setPurpose] = useState<string>(bestRoomCriteria.purpose || 'Group Discussion');
   const [peopleCount, setPeopleCount] = useState<number>(bestRoomCriteria.peopleCount || 6);
@@ -42,7 +45,7 @@ export const BestRoomRequirementsScreen: React.FC = () => {
         showBack={true}
       />
 
-      <main className="flex flex-col px-4 pt-3 pb-8 gap-3.5">
+      <main className={isWeb ? 'w-full max-w-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4' : 'flex flex-col px-4 pt-3 pb-8 gap-3.5'}>
         <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center gap-2.5 text-emerald-950">
           <span className="material-symbols-outlined text-emerald-700 text-xl shrink-0">psychology</span>
           <p className="text-xs text-emerald-900 leading-snug">

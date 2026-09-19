@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 import { StatusBadge } from '../StatusBadge';
 import { LiveRoomStatusSection } from '../LiveRoomStatusSection';
@@ -118,6 +119,363 @@ export const StudentDashboard: React.FC = () => {
     navigate('room-details');
   };
 
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
+
+  const renderSearchForm = (desktopGrid = false) => (
+    <form onSubmit={handleSearchSubmit} className="flex flex-col gap-3">
+      <div className={desktopGrid ? 'grid grid-cols-1 sm:grid-cols-2 gap-3.5' : 'flex flex-col gap-2.5'}>
+        {/* Building Dropdown */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+            Campus Building
+          </label>
+          <div className="relative bg-slate-50 rounded-xl border border-slate-200">
+            <span className="material-symbols-outlined absolute left-3 top-2.5 text-lg text-slate-400 pointer-events-none">
+              domain
+            </span>
+            <select
+              value={searchBldg}
+              onChange={(e) => setSearchBldg(e.target.value)}
+              className="w-full h-11 pl-9 pr-8 bg-transparent text-xs text-slate-900 font-semibold appearance-none focus:outline-none"
+            >
+              <option value="All">All Buildings</option>
+              <option value="CME">CME — Computer & Mechanical Engg</option>
+              <option value="CB">CB — Central Block</option>
+              <option value="ICT">ICT — Information & Comm. Tech</option>
+            </select>
+            <span className="material-symbols-outlined absolute right-2.5 top-2.5 text-lg text-slate-400 pointer-events-none">
+              expand_more
+            </span>
+          </div>
+        </div>
+
+        {/* Date Slot */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+            Date
+          </label>
+          <div className="relative bg-slate-50 rounded-xl border border-slate-200">
+            <span className="material-symbols-outlined absolute left-2.5 top-2.5 text-base text-slate-400 pointer-events-none">
+              calendar_today
+            </span>
+            <select className="w-full h-11 pl-8 pr-6 bg-transparent text-xs text-slate-800 font-medium appearance-none focus:outline-none">
+              <option>Today, Mon</option>
+              <option>Tomorrow, Tue</option>
+              <option>Wed, Nov 20</option>
+            </select>
+            <span className="material-symbols-outlined absolute right-2 top-2.5 text-base text-slate-400 pointer-events-none">
+              expand_more
+            </span>
+          </div>
+        </div>
+
+        {/* Start Time */}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+              Start Time
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                setIsManualTime(!isManualTime);
+                setTimeError('');
+              }}
+              className="text-[10px] text-emerald-600 hover:underline font-bold cursor-pointer"
+            >
+              {isManualTime ? 'Choose from list' : 'Type manually'}
+            </button>
+          </div>
+          <div
+            className={`relative bg-slate-50 rounded-xl border transition-colors ${
+              timeError ? 'border-rose-400 focus-within:border-rose-500' : 'border-slate-200'
+            }`}
+          >
+            <span className="material-symbols-outlined absolute left-2.5 top-2.5 text-base text-slate-400 pointer-events-none">
+              schedule
+            </span>
+            {!isManualTime ? (
+              <select
+                value={startTime}
+                onChange={(e) => {
+                  setStartTime(e.target.value);
+                  if (timeError) setTimeError('');
+                }}
+                className="w-full h-11 pl-8 pr-6 bg-transparent text-xs text-slate-800 font-medium appearance-none focus:outline-none"
+              >
+                {START_TIME_OPTIONS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                value={startTime}
+                onChange={(e) => {
+                  setStartTime(e.target.value);
+                  if (timeError) setTimeError('');
+                }}
+                placeholder="e.g. 10:15 AM"
+                className="w-full h-11 pl-8 pr-3 bg-transparent text-xs text-slate-800 font-medium focus:outline-none"
+              />
+            )}
+            {!isManualTime && (
+              <span className="material-symbols-outlined absolute right-2 top-2.5 text-base text-slate-400 pointer-events-none">
+                expand_more
+              </span>
+            )}
+          </div>
+          {timeError && (
+            <span className="text-[10px] text-rose-600 font-semibold leading-tight">{timeError}</span>
+          )}
+        </div>
+
+        {/* Duration */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+            Duration
+          </label>
+          <div className="relative bg-slate-50 rounded-xl border border-slate-200">
+            <span className="material-symbols-outlined absolute left-3 top-2.5 text-lg text-slate-400 pointer-events-none">
+              timer
+            </span>
+            <select
+              value={searchDuration}
+              onChange={(e) => setSearchDuration(e.target.value)}
+              className="w-full h-11 pl-9 pr-8 bg-transparent text-xs text-slate-800 font-medium appearance-none focus:outline-none"
+            >
+              <option value="45m">45 Minutes</option>
+              <option value="1h">1 Hour</option>
+              <option value="1.5h">1.5 Hours</option>
+              <option value="2h">2 Hours</option>
+            </select>
+            <span className="material-symbols-outlined absolute right-2.5 top-2.5 text-lg text-slate-400 pointer-events-none">
+              expand_more
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white rounded-xl font-bold flex items-center justify-center space-x-2 shadow-sm transition-all cursor-pointer mt-1"
+      >
+        <span className="material-symbols-outlined text-[20px]">search</span>
+        <span>Find Available Rooms</span>
+      </button>
+    </form>
+  );
+
+  if (isWeb) {
+    return (
+      <div className="flex flex-col w-full pb-16 bg-[#f8f9ff]">
+        <Header title="SpotFree HIT" subtitle="Heritage Institute of Technology" showBack={false} />
+
+        <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+          {/* Top Hero Section: Welcome Banner + Suggest Best Room Card */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+            {/* Welcome Banner */}
+            <div className="lg:col-span-7 xl:col-span-8 bg-[#0f172a] text-white p-6 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute -right-6 -bottom-6 w-36 h-36 rounded-full bg-emerald-500/10 blur-xl pointer-events-none" />
+              <div className="relative z-10 flex flex-col justify-between h-full gap-4">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Role: Student
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">Heritage Institute of Technology</span>
+                </div>
+                <div>
+                  <h2 className="text-xl lg:text-2xl font-bold text-white tracking-tight">
+                    Welcome, {currentUser.name}
+                  </h2>
+                  <p className="text-slate-300 text-xs mt-1 max-w-lg leading-relaxed">
+                    Check live availability, find vacant study spaces, or scan room door plaques across CME, CB, and ICT buildings.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Suggest Best Room Instant Match Card */}
+            <div className="lg:col-span-5 xl:col-span-4 rounded-2xl bg-white border border-emerald-200 p-5 shadow-sm flex flex-col justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 shadow-xs shrink-0">
+                  <span className="material-symbols-outlined text-2xl">auto_awesome</span>
+                </div>
+                <div>
+                  <h3 className="font-title-sm text-title-sm text-slate-900 font-bold">
+                    Need an immediate spot?
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                    Instant smart match based on group size, duration, and required amenities.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate('best-room-req')}
+                className="w-full py-2.5 px-4 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98] transition-all cursor-pointer"
+              >
+                <span>Suggest Best Room</span>
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Main Content Grid: Left Main (Search + Live Status) & Right Sidebar (Shortcuts + Department Spaces + Quick Filters) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Main Column */}
+            <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
+              {/* Primary Room Search Form Card */}
+              <section className="rounded-2xl bg-white p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+                <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                  <div className="flex items-center space-x-2">
+                    <span className="material-symbols-outlined text-emerald-600 text-[20px]">search</span>
+                    <h2 className="font-title-md text-title-md text-slate-900 font-bold">
+                      Find Available Rooms
+                    </h2>
+                  </div>
+                  <span className="font-label-sm text-label-sm text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2.5 py-0.5 rounded-full font-semibold border border-emerald-200/60">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Live Sync
+                  </span>
+                </div>
+
+                {renderSearchForm(true)}
+              </section>
+
+              {/* LIVE ROOM STATUS */}
+              <LiveRoomStatusSection initialBuilding={searchBldg} />
+            </div>
+
+            {/* Right Sidebar Column */}
+            <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-5">
+              {/* Quick Actions Shortcuts */}
+              <section className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col gap-3">
+                <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                  <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Quick Actions
+                  </span>
+                  <span className="material-symbols-outlined text-slate-400 text-base">bolt</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => navigate('scan-qr')}
+                    className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200/80 flex items-center justify-between group active:scale-[0.99] transition-all cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-xl">qr_code_scanner</span>
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-slate-900 block group-hover:text-emerald-700 transition-colors">
+                          Scan Door Plaque
+                        </span>
+                        <span className="text-[10px] text-slate-500 block">Scan classroom door QR plaque</span>
+                      </div>
+                    </div>
+                    <span className="material-symbols-outlined text-slate-400 group-hover:text-slate-700 text-lg transition-colors">
+                      chevron_right
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('enter-room')}
+                    className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200/80 flex items-center justify-between group active:scale-[0.99] transition-all cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-slate-200 text-slate-800 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-xl">pin</span>
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-slate-900 block group-hover:text-slate-900 transition-colors">
+                          Enter Room Number
+                        </span>
+                        <span className="text-[10px] text-slate-500 block">Manual entry: CME604, CB501, etc.</span>
+                      </div>
+                    </div>
+                    <span className="material-symbols-outlined text-slate-400 group-hover:text-slate-700 text-lg transition-colors">
+                      chevron_right
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('my-timetable')}
+                    className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200/80 flex items-center justify-between group active:scale-[0.99] transition-all cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-xl">calendar_month</span>
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-slate-900 block group-hover:text-blue-700 transition-colors">
+                          My Timetable
+                        </span>
+                        <span className="text-[10px] text-slate-500 block">CSE (DS) 2nd Year 1st Sem</span>
+                      </div>
+                    </div>
+                    <span className="material-symbols-outlined text-slate-400 group-hover:text-slate-700 text-lg transition-colors">
+                      chevron_right
+                    </span>
+                  </button>
+                </div>
+              </section>
+
+              {/* Quick Department Spaces */}
+              <QuickDepartmentSpacesSection />
+
+              {/* Quick Filters */}
+              <section className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col gap-3">
+                <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                  <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">Quick Filters</span>
+                  <span className="material-symbols-outlined text-slate-400 text-base">filter_list</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => handleQuickFilter('All', 'VACANT')}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-xl shadow-xs flex items-center justify-between active:scale-95 transition-all cursor-pointer"
+                  >
+                    <span className="font-bold text-xs">Free Now</span>
+                    <span className="material-symbols-outlined text-lg">bolt</span>
+                  </button>
+                  <button
+                    onClick={() => handleQuickFilter('CLASSROOM')}
+                    className="bg-slate-50 hover:bg-slate-100 text-slate-900 p-2.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between active:scale-95 transition-all cursor-pointer"
+                  >
+                    <span className="font-bold text-xs">Classrooms</span>
+                    <span className="material-symbols-outlined text-lg text-slate-500">meeting_room</span>
+                  </button>
+                  <button
+                    onClick={() => handleQuickFilter('SEMINAR HALL')}
+                    className="bg-slate-50 hover:bg-slate-100 text-slate-900 p-2.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between active:scale-95 transition-all cursor-pointer"
+                  >
+                    <span className="font-bold text-xs">Seminar Halls</span>
+                    <span className="material-symbols-outlined text-lg text-slate-500">co_present</span>
+                  </button>
+                  <button
+                    onClick={() => handleQuickFilter('LABS')}
+                    className="bg-slate-50 hover:bg-slate-100 text-slate-900 p-2.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between active:scale-95 transition-all cursor-pointer"
+                  >
+                    <span className="font-bold text-xs">Laboratories</span>
+                    <span className="material-symbols-outlined text-lg text-slate-500">science</span>
+                  </button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Mobile layout preserved
   return (
     <div className="flex flex-col w-full pb-24 bg-[#f8f9ff]">
       <Header title="SpotFree HIT" subtitle="Heritage Institute of Technology" showBack={false} />
@@ -159,7 +517,7 @@ export const StudentDashboard: React.FC = () => {
             </div>
             <button
               onClick={() => navigate('best-room-req')}
-              className="px-3.5 py-2 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold flex items-center space-x-1 shadow-sm active:scale-95 transition-all shrink-0"
+              className="px-3.5 py-2 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold flex items-center space-x-1 shadow-sm active:scale-95 transition-all shrink-0 cursor-pointer"
             >
               <span>Suggest</span>
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -182,154 +540,14 @@ export const StudentDashboard: React.FC = () => {
             </span>
           </div>
 
-          <form onSubmit={handleSearchSubmit} className="flex flex-col gap-2.5">
-            {/* Building Dropdown */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Campus Building
-              </label>
-              <div className="relative bg-slate-50 rounded-lg border border-slate-200">
-                <span className="material-symbols-outlined absolute left-3 top-2.5 text-lg text-slate-400 pointer-events-none">
-                  domain
-                </span>
-                <select
-                  value={searchBldg}
-                  onChange={(e) => setSearchBldg(e.target.value)}
-                  className="w-full h-11 pl-9 pr-8 bg-transparent text-xs text-slate-900 font-semibold appearance-none focus:outline-none"
-                >
-                  <option value="All">All Buildings</option>
-                  <option value="CME">CME — Computer & Mechanical Engg</option>
-                  <option value="CB">CB — Central Block</option>
-                  <option value="ICT">ICT — Information & Comm. Tech</option>
-                </select>
-                <span className="material-symbols-outlined absolute right-2.5 top-2.5 text-lg text-slate-400 pointer-events-none">
-                  expand_more
-                </span>
-              </div>
-            </div>
-
-            {/* Date and Time Slot */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  Date
-                </label>
-                <div className="relative bg-slate-50 rounded-lg border border-slate-200">
-                  <span className="material-symbols-outlined absolute left-2.5 top-2.5 text-base text-slate-400 pointer-events-none">
-                    calendar_today
-                  </span>
-                  <select className="w-full h-11 pl-8 pr-6 bg-transparent text-xs text-slate-800 font-medium appearance-none focus:outline-none">
-                    <option>Today, Mon</option>
-                    <option>Tomorrow, Tue</option>
-                    <option>Wed, Nov 20</option>
-                  </select>
-                  <span className="material-symbols-outlined absolute right-2 top-2.5 text-base text-slate-400 pointer-events-none">
-                    expand_more
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Start Time
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsManualTime(!isManualTime);
-                      setTimeError('');
-                    }}
-                    className="text-[10px] text-emerald-600 hover:underline font-bold cursor-pointer"
-                  >
-                    {isManualTime ? 'Choose from list' : 'Type manually'}
-                  </button>
-                </div>
-                <div className={`relative bg-slate-50 rounded-lg border transition-colors ${
-                  timeError ? 'border-rose-400 focus-within:border-rose-500' : 'border-slate-200'
-                }`}>
-                  <span className="material-symbols-outlined absolute left-2.5 top-2.5 text-base text-slate-400 pointer-events-none">
-                    schedule
-                  </span>
-                  {!isManualTime ? (
-                    <select
-                      value={startTime}
-                      onChange={(e) => {
-                        setStartTime(e.target.value);
-                        if (timeError) setTimeError('');
-                      }}
-                      className="w-full h-11 pl-8 pr-6 bg-transparent text-xs text-slate-800 font-medium appearance-none focus:outline-none"
-                    >
-                      {START_TIME_OPTIONS.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      value={startTime}
-                      onChange={(e) => {
-                        setStartTime(e.target.value);
-                        if (timeError) setTimeError('');
-                      }}
-                      placeholder="e.g. 10:15 AM"
-                      className="w-full h-11 pl-8 pr-3 bg-transparent text-xs text-slate-800 font-medium focus:outline-none"
-                    />
-                  )}
-                  {!isManualTime && (
-                    <span className="material-symbols-outlined absolute right-2 top-2.5 text-base text-slate-400 pointer-events-none">
-                      expand_more
-                    </span>
-                  )}
-                </div>
-                {timeError && (
-                  <span className="text-[10px] text-rose-600 font-semibold leading-tight">{timeError}</span>
-                )}
-              </div>
-            </div>
-
-            {/* Duration */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Duration
-              </label>
-              <div className="relative bg-slate-50 rounded-lg border border-slate-200">
-                <span className="material-symbols-outlined absolute left-3 top-2.5 text-lg text-slate-400 pointer-events-none">
-                  timer
-                </span>
-                <select
-                  value={searchDuration}
-                  onChange={(e) => setSearchDuration(e.target.value)}
-                  className="w-full h-11 pl-9 pr-8 bg-transparent text-xs text-slate-800 font-medium appearance-none focus:outline-none"
-                >
-                  <option value="45m">45 Minutes</option>
-                  <option value="1h">1 Hour</option>
-                  <option value="1.5h">1.5 Hours</option>
-                  <option value="2h">2 Hours</option>
-                </select>
-                <span className="material-symbols-outlined absolute right-2.5 top-2.5 text-lg text-slate-400 pointer-events-none">
-                  expand_more
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-title-sm text-title-sm font-bold flex items-center justify-center space-x-2 shadow-sm active:scale-[0.98] transition-transform mt-1"
-            >
-              <span className="material-symbols-outlined text-[20px]">search</span>
-              <span>Find Available Rooms</span>
-            </button>
-          </form>
+          {renderSearchForm(false)}
         </section>
 
         {/* Action Shortcuts: Scan QR | Enter Room No | My Timetable */}
         <div className="grid grid-cols-3 gap-2">
           <button
             onClick={() => navigate('scan-qr')}
-            className="p-3 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-1 text-center active:scale-95 transition-all"
+            className="p-3 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-1 text-center active:scale-95 transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-emerald-600 text-2xl">qr_code_scanner</span>
             <span className="text-xs font-bold text-slate-900">Scan QR</span>
@@ -338,7 +556,7 @@ export const StudentDashboard: React.FC = () => {
 
           <button
             onClick={() => navigate('enter-room')}
-            className="p-3 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-1 text-center active:scale-95 transition-all"
+            className="p-3 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-1 text-center active:scale-95 transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-slate-700 text-2xl">pin</span>
             <span className="text-xs font-bold text-slate-900">Enter No.</span>
@@ -347,7 +565,7 @@ export const StudentDashboard: React.FC = () => {
 
           <button
             onClick={() => navigate('my-timetable')}
-            className="p-3 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-1 text-center active:scale-95 transition-all"
+            className="p-3 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-1 text-center active:scale-95 transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-blue-600 text-2xl">calendar_month</span>
             <span className="text-xs font-bold text-slate-900">Timetable</span>
@@ -370,14 +588,14 @@ export const StudentDashboard: React.FC = () => {
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => handleQuickFilter('All', 'VACANT')}
-              className="bg-emerald-600 text-white p-3 rounded-xl shadow-sm flex items-center justify-between active:scale-95 transition-transform"
+              className="bg-emerald-600 text-white p-3 rounded-xl shadow-sm flex items-center justify-between active:scale-95 transition-transform cursor-pointer"
             >
               <span className="font-title-sm text-title-sm">Free Now</span>
               <span className="material-symbols-outlined text-[20px]">bolt</span>
             </button>
             <button
               onClick={() => handleQuickFilter('CLASSROOM')}
-              className="bg-white text-slate-900 p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between active:scale-95 transition-transform"
+              className="bg-white text-slate-900 p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between active:scale-95 transition-transform cursor-pointer"
             >
               <span className="font-title-sm text-title-sm">Classrooms</span>
               <span className="material-symbols-outlined text-[20px] text-slate-500">
@@ -386,14 +604,14 @@ export const StudentDashboard: React.FC = () => {
             </button>
             <button
               onClick={() => handleQuickFilter('SEMINAR HALL')}
-              className="bg-white text-slate-900 p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between active:scale-95 transition-transform"
+              className="bg-white text-slate-900 p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between active:scale-95 transition-transform cursor-pointer"
             >
               <span className="font-title-sm text-title-sm">Seminar Halls</span>
               <span className="material-symbols-outlined text-[20px] text-slate-500">co_present</span>
             </button>
             <button
               onClick={() => handleQuickFilter('LABS')}
-              className="bg-white text-slate-900 p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between active:scale-95 transition-transform"
+              className="bg-white text-slate-900 p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between active:scale-95 transition-transform cursor-pointer"
             >
               <span className="font-title-sm text-title-sm">Laboratories</span>
               <span className="material-symbols-outlined text-[20px] text-slate-500">science</span>

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 import { StatusBadge } from '../StatusBadge';
 
@@ -15,11 +16,14 @@ export const RoomDetailsScreen: React.FC = () => {
     currentRole,
     bookVacantRoom,
   } = useSpotFree();
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const [showBookModal, setShowBookModal] = useState<boolean>(false);
   const [bookDate, setBookDate] = useState<string>('Today');
   const [bookTime, setBookTime] = useState<string>('11:00 AM');
   const [bookDuration, setBookDuration] = useState<string>('1 Hour');
+  const [bookRemarks, setBookRemarks] = useState<string>('');
 
   const room = selectedRoom;
 
@@ -27,7 +31,16 @@ export const RoomDetailsScreen: React.FC = () => {
     return (
       <div className="flex flex-col w-full pb-24 bg-[#f8f9ff]">
         <Header title="Room Details" showBack={true} />
-        <div className="p-8 text-center text-slate-500 text-xs">Room not found.</div>
+        <main className="p-8 text-center flex flex-col items-center gap-3">
+          <span className="material-symbols-outlined text-4xl text-slate-400">warning</span>
+          <p className="text-sm font-bold text-slate-700">No Room Selected</p>
+          <button
+            onClick={() => navigate('room-availability')}
+            className="px-4 py-2 bg-[#0f172a] text-white text-xs font-bold rounded-xl"
+          >
+            Go to Room Availability
+          </button>
+        </main>
       </div>
     );
   }
@@ -44,9 +57,9 @@ export const RoomDetailsScreen: React.FC = () => {
   };
 
   const handleShare = () => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+    if (navigator.clipboard) {
       navigator.clipboard.writeText(`SpotFree HIT - Room ${room.id} (${room.status})`);
-      showToast('Room link copied to clipboard');
+      showToast('Room link copied to clipboard', 'link');
     } else {
       showToast(`SpotFree: ${room.id}`);
     }
@@ -60,7 +73,7 @@ export const RoomDetailsScreen: React.FC = () => {
         showBack={true}
       />
 
-      <main className="flex flex-col px-4 pt-3 pb-8 gap-3.5">
+      <main className={isWeb ? 'w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-5' : 'flex flex-col px-4 pt-3 pb-8 gap-3.5'}>
         {/* Sub-header Context Bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">

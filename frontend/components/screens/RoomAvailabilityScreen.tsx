@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 import { RoomCard } from '../RoomCard';
 
@@ -18,6 +19,8 @@ export const RoomAvailabilityScreen: React.FC = () => {
     navigate,
     simulatedTimeLabel,
   } = useSpotFree();
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
 
   const [activeFloorFilter, setActiveFloorFilter] = useState<number | null>(null);
 
@@ -52,7 +55,7 @@ export const RoomAvailabilityScreen: React.FC = () => {
         showBack={true}
       />
 
-      <main className="flex flex-col px-4 pt-2.5 pb-8 gap-3">
+      <main className={isWeb ? 'w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-5' : 'flex flex-col px-4 pt-2.5 pb-28 gap-3.5 w-full max-w-full overflow-x-hidden'}>
         {/* Top Summary Bar & Status Counts */}
         <section className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
@@ -234,15 +237,15 @@ export const RoomAvailabilityScreen: React.FC = () => {
         </div>
 
         {/* Rooms Card Feed */}
-        <div className="flex flex-col gap-2.5">
+        <div className={isWeb ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5" : "flex flex-col gap-3 w-full"}>
           {filteredRooms.length === 0 ? (
-            <div className="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300 flex flex-col items-center gap-2">
+            <div className="col-span-full p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300 flex flex-col items-center gap-2">
               <span className="material-symbols-outlined text-3xl text-slate-400">room_preferences</span>
               <p className="text-xs font-bold text-slate-700">No rooms match your active filters</p>
               <p className="text-[11px] text-slate-400">Try selecting a different building or resetting status filters.</p>
               <button
                 onClick={resetFilters}
-                className="mt-2 px-4 py-1.5 bg-[#0f172a] text-white text-xs font-bold rounded-lg shadow-sm"
+                className="mt-2 px-4 py-1.5 bg-[#0f172a] text-white text-xs font-bold rounded-lg shadow-sm cursor-pointer hover:bg-slate-800"
               >
                 Reset All Filters
               </button>

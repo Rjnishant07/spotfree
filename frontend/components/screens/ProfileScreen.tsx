@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 
 export const ProfileScreen: React.FC = () => {
@@ -131,6 +132,9 @@ export const ProfileScreen: React.FC = () => {
     }, 500);
   };
 
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
+
   return (
     <div className="flex flex-col w-full min-h-screen pb-28 bg-[#f8f9ff]">
       {/* 1. HEADER */}
@@ -140,7 +144,7 @@ export const ProfileScreen: React.FC = () => {
         showBack={true}
       />
 
-      <main className="flex flex-col px-4 pt-4 gap-4">
+      <main className={isWeb ? 'w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-5' : 'flex flex-col px-4 pt-4 gap-4'}>
         {/* 2. PROFILE IDENTITY CARD */}
         <section
           aria-label="Profile Identity"

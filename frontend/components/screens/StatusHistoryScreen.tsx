@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSpotFree, normalizeRoleToAuthority } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 import { StatusBadge } from '../StatusBadge';
 import { Room, RoomStatus, StatusHistoryItem, UserProfile, AuthorityLevel } from '@/lib/types';
@@ -471,6 +472,9 @@ export const StatusHistoryScreen: React.FC = () => {
     return false;
   };
 
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
+
   return (
     <div className="flex flex-col w-full pb-24 bg-[#f8f9ff]">
       <Header
@@ -479,7 +483,7 @@ export const StatusHistoryScreen: React.FC = () => {
         showBack={true}
       />
 
-      <main className="flex flex-col px-4 pt-3 pb-8 gap-3.5">
+      <main className={isWeb ? 'w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-5' : 'flex flex-col px-4 pt-3 pb-8 gap-3.5'}>
         {/* Meta Context Strip & Booking Action Banner */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">

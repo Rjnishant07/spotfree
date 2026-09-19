@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 
 export const NotificationsScreen: React.FC = () => {
@@ -14,6 +15,8 @@ export const NotificationsScreen: React.FC = () => {
     setSelectedRoomId,
     navigate,
   } = useSpotFree();
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
 
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
 
@@ -39,7 +42,7 @@ export const NotificationsScreen: React.FC = () => {
         showBack={true}
       />
 
-      <div className="flex flex-col w-full px-gutter pt-3 pb-6">
+      <main className={isWeb ? 'w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-4' : 'flex flex-col w-full px-gutter pt-3 pb-6'}>
         {/* Interactive Sub-header Action Bar */}
         <div className="flex items-center justify-between py-space-sm mb-space-sm">
           <div className="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-full shadow-sm">
@@ -251,7 +254,7 @@ export const NotificationsScreen: React.FC = () => {
             </p>
           </div>
         </section>
-      </div>
+      </main>
     </div>
   );
 };

@@ -2,11 +2,14 @@
 
 import React, { useState } from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 import { lookupRoomByNumber } from '@/mock-data/qrCodes';
 
 export const EnterRoomNumberScreen: React.FC = () => {
   const { rooms, setSelectedRoomId, navigate, showToast } = useSpotFree();
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
   const [inputValue, setInputValue] = useState<string>('CME604');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -67,7 +70,7 @@ export const EnterRoomNumberScreen: React.FC = () => {
         showBack={true}
       />
 
-      <main className="flex flex-col px-4 pt-3 pb-8 gap-3.5">
+      <main className={isWeb ? 'w-full max-w-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4' : 'flex flex-col px-4 pt-3 pb-8 gap-3.5'}>
         {/* Context Badge */}
         <div className="flex items-center">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">

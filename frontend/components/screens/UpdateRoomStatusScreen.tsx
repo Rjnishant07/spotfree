@@ -59,7 +59,7 @@ export const UpdateRoomStatusScreen: React.FC = () => {
         showBack={true}
       />
 
-      <main className="flex flex-col px-4 pt-3 pb-8 gap-3.5">
+      <main className="flex flex-col max-w-2xl mx-auto w-full px-4 sm:px-6 pt-4 pb-12 gap-3.5">
         {/* Context Strip */}
         <div className="flex items-center justify-between">
           <div>

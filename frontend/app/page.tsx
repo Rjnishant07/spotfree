@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { SpotFreeProvider, useSpotFree } from '@/context/SpotFreeContext';
-import { BottomNavigation } from '@/components/BottomNavigation';
-import { Toast } from '@/components/FeedbackComponents';
+import { AppShell } from '@/components/AppShell';
 
 // Screen Components
 import { LoginScreen } from '@/components/screens/LoginScreen';
@@ -74,20 +73,9 @@ function SpotFreeApp() {
     }
   };
 
-  return (
-    <div className="flex flex-col flex-1 min-h-screen relative bg-[#f8f9ff]">
-      {/* Main Screen Content */}
-      <main className="flex-1 flex flex-col">
-        {renderActiveScreen()}
-      </main>
+  const isAuth = currentView === 'login' || currentView === 'signup';
 
-      {/* Bottom Navigation (role-aware, hidden on login & signup) */}
-      {currentView !== 'login' && currentView !== 'signup' && <BottomNavigation />}
-
-      {/* Global Feedback Toast */}
-      <Toast />
-    </div>
-  );
+  return <AppShell isAuth={isAuth}>{renderActiveScreen()}</AppShell>;
 }
 
 export default function Home() {

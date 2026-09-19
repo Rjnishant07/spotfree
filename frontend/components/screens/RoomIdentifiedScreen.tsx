@@ -2,11 +2,14 @@
 
 import React from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 import { StatusBadge } from '../StatusBadge';
 
 export const RoomIdentifiedScreen: React.FC = () => {
   const { selectedRoom, navigate, canUserOverrideRoom, currentRole } = useSpotFree();
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
 
   const r = selectedRoom;
 
@@ -33,7 +36,7 @@ export const RoomIdentifiedScreen: React.FC = () => {
         showBack={true}
       />
 
-      <main className="flex flex-col px-4 pt-3 pb-8 gap-3.5">
+      <main className={isWeb ? 'w-full max-w-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4' : 'flex flex-col px-4 pt-3 pb-8 gap-3.5'}>
         {/* Plaque Confirmed Banner */}
         <div className="bg-emerald-50 border border-emerald-200 p-3.5 rounded-2xl flex items-center gap-2.5 text-emerald-900 shadow-xs">
           <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { StatusBadge } from './StatusBadge';
 import { CampusBuilding } from '@/lib/types';
 
@@ -13,6 +14,8 @@ export const LiveRoomStatusSection: React.FC<LiveRoomStatusSectionProps> = ({
   initialBuilding = 'CME',
 }) => {
   const { rooms, getBuildingStats, setSelectedRoomId, navigate } = useSpotFree();
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
   const [activeBldg, setActiveBldg] = useState<string>(initialBuilding);
   const [showIndividual, setShowIndividual] = useState<boolean>(false);
   const [selectedFloor, setSelectedFloor] = useState<string>('All');
@@ -82,33 +85,33 @@ export const LiveRoomStatusSection: React.FC<LiveRoomStatusSectionProps> = ({
       </div>
 
       {/* 4 Status-Count Cards (Preserved UI) */}
-      <div className="grid grid-cols-4 gap-1.5 text-center">
-        <div className="bg-emerald-50 border border-emerald-200/80 p-2 rounded-xl">
-          <span className="text-base font-extrabold text-emerald-800 block">
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-2 text-center">
+        <div className="bg-emerald-50 border border-emerald-200/80 p-2 sm:p-2.5 rounded-xl transition-transform hover:scale-[1.02]">
+          <span className="text-base sm:text-lg lg:text-xl font-extrabold text-emerald-800 block">
             {stats.vacant}
           </span>
-          <span className="text-[10px] font-semibold text-emerald-700">Vacant</span>
+          <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-700">Vacant</span>
         </div>
 
-        <div className="bg-rose-50 border border-rose-200/80 p-2 rounded-xl">
-          <span className="text-base font-extrabold text-rose-800 block">
+        <div className="bg-rose-50 border border-rose-200/80 p-2 sm:p-2.5 rounded-xl transition-transform hover:scale-[1.02]">
+          <span className="text-base sm:text-lg lg:text-xl font-extrabold text-rose-800 block">
             {stats.occupied}
           </span>
-          <span className="text-[10px] font-semibold text-rose-700">Occupied</span>
+          <span className="text-[10px] sm:text-[11px] font-semibold text-rose-700">Occupied</span>
         </div>
 
-        <div className="bg-amber-50 border border-amber-200/80 p-2 rounded-xl">
-          <span className="text-base font-extrabold text-amber-800 block">
+        <div className="bg-amber-50 border border-amber-200/80 p-2 sm:p-2.5 rounded-xl transition-transform hover:scale-[1.02]">
+          <span className="text-base sm:text-lg lg:text-xl font-extrabold text-amber-800 block">
             {stats.reserved}
           </span>
-          <span className="text-[10px] font-semibold text-amber-700">Reserved</span>
+          <span className="text-[10px] sm:text-[11px] font-semibold text-amber-700">Reserved</span>
         </div>
 
-        <div className="bg-slate-50 border border-slate-200 p-2 rounded-xl">
-          <span className="text-base font-extrabold text-slate-800 block">
+        <div className="bg-slate-50 border border-slate-200 p-2 sm:p-2.5 rounded-xl transition-transform hover:scale-[1.02]">
+          <span className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-800 block">
             {stats.noInfo}
           </span>
-          <span className="text-[10px] font-semibold text-slate-500">No Info</span>
+          <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500">No Info</span>
         </div>
       </div>
 
@@ -117,9 +120,9 @@ export const LiveRoomStatusSection: React.FC<LiveRoomStatusSectionProps> = ({
         <button
           type="button"
           onClick={() => setShowIndividual(!showIndividual)}
-          className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-between border transition-all cursor-pointer ${
+          className={`w-full py-2.5 px-3.5 rounded-xl text-xs font-bold flex items-center justify-between border transition-all cursor-pointer ${
             showIndividual
-              ? 'bg-[#0f172a] text-white border-slate-900'
+              ? 'bg-[#0f172a] text-white border-slate-900 shadow-sm'
               : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200'
           }`}
         >
@@ -131,8 +134,8 @@ export const LiveRoomStatusSection: React.FC<LiveRoomStatusSectionProps> = ({
               {showIndividual ? 'Hide Individual Rooms' : 'View Status of Every Individual Room'}
             </span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="text-[10px] opacity-80">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] opacity-80 font-medium">
               {showIndividual ? 'Collapse' : `${individualRooms.length} Rooms`}
             </span>
             <span className="material-symbols-outlined text-sm">
@@ -187,9 +190,9 @@ export const LiveRoomStatusSection: React.FC<LiveRoomStatusSectionProps> = ({
           </div>
 
           {/* Individual Room Cards List */}
-          <div className="flex flex-col gap-2 max-h-[380px] overflow-y-auto pr-0.5">
+          <div className={isWeb ? "grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[420px] overflow-y-auto pr-1" : "flex flex-col gap-2 max-h-[420px] overflow-y-auto pr-1 w-full"}>
             {individualRooms.length === 0 ? (
-              <div className="p-4 text-center text-xs text-slate-500 bg-slate-50 rounded-xl">
+              <div className="col-span-full p-4 text-center text-xs text-slate-500 bg-slate-50 rounded-xl">
                 No rooms found for selected building & floor filter.
               </div>
             ) : (

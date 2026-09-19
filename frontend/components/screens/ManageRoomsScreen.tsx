@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 import { StatusBadge } from '../StatusBadge';
 import { CampusBuilding, RoomType, SpaceType, RoomStatus } from '@/lib/types';
@@ -128,11 +129,14 @@ export const ManageRoomsScreen: React.FC = () => {
     setIsStatusDropdownOpen(false);
   };
 
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
+
   return (
     <div className="flex flex-col w-full pb-24 bg-[#f8f9ff]">
       <Header title="Manage Rooms" subtitle="Campus Space Allocation" showBack={true} />
 
-      <main className="flex flex-col px-4 pt-3 pb-8 gap-3.5">
+      <main className={isWeb ? 'w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-5' : 'flex flex-col px-4 pt-3 pb-8 gap-3.5'}>
         {/* Sub-header Strip */}
         <section className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
@@ -155,7 +159,7 @@ export const ManageRoomsScreen: React.FC = () => {
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="h-10 px-3.5 bg-[#0f172a] hover:bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-all shrink-0"
+            className="h-10 px-3.5 bg-[#0f172a] hover:bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm transition-all shrink-0 cursor-pointer"
           >
             <span className="material-symbols-outlined text-sm">add</span>
             <span>Add Room</span>
@@ -182,7 +186,7 @@ export const ManageRoomsScreen: React.FC = () => {
             <button
               key={bldg}
               onClick={() => setActiveFilterBuilding(bldg)}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeFilterBuilding === bldg
                   ? 'bg-[#0f172a] text-white shadow-xs'
                   : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
@@ -199,11 +203,12 @@ export const ManageRoomsScreen: React.FC = () => {
             <span>Showing {filtered.length} of {rooms.length} rooms</span>
           </div>
 
-          {filtered.map((room) => (
-            <div
-              key={room.id}
-              className="p-3 bg-white rounded-xl border border-slate-200 shadow-xs flex items-center justify-between gap-2"
-            >
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {filtered.map((room) => (
+              <div
+                key={room.id}
+                className="p-3 bg-white rounded-xl border border-slate-200 shadow-xs flex items-center justify-between gap-2"
+              >
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-xs text-slate-900">{room.id}</span>
@@ -236,6 +241,7 @@ export const ManageRoomsScreen: React.FC = () => {
               </div>
             </div>
           ))}
+          </div>
         </div>
 
         {/* Add Room Modal */}

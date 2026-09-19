@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 import { LiveRoomStatusSection } from '../LiveRoomStatusSection';
 import { QuickDepartmentSpacesSection } from '../QuickDepartmentSpacesSection';
@@ -14,6 +15,8 @@ export const AdminDashboard: React.FC = () => {
     navigate,
     getBuildingStats,
   } = useSpotFree();
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
 
   const buildings: Array<'CME' | 'CB' | 'ICT'> = ['CME', 'CB', 'ICT'];
   const bldgStats = buildings.map((b) => ({
@@ -34,7 +37,7 @@ export const AdminDashboard: React.FC = () => {
         showBack={false}
       />
 
-      <main className="flex flex-col px-4 pt-3 pb-8 gap-4">
+      <main className={isWeb ? 'w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-5' : 'flex flex-col px-4 pt-3 pb-8 gap-4'}>
         {/* Admin Overview Header Banner */}
         <div className="bg-[#0f172a] text-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
           <div>

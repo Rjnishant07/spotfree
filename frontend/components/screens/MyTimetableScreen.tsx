@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
 import { StudentGroup } from '@/lib/types';
 
@@ -19,6 +20,8 @@ export const MyTimetableScreen: React.FC = () => {
     setSelectedRoomId,
     navigate,
   } = useSpotFree();
+  const { effectiveView } = useUIPrefs();
+  const isWeb = effectiveView === 'web';
 
   const [simulatedTimeSelection, setSimulatedTimeSelection] = useState<string>('10.5');
 
@@ -56,7 +59,7 @@ export const MyTimetableScreen: React.FC = () => {
         showBack={true}
       />
 
-      <main className="flex flex-col px-4 pt-3 pb-8 gap-3.5">
+      <main className={isWeb ? 'w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-5' : 'flex flex-col px-4 pt-3 pb-8 gap-3.5'}>
         {/* Live Sync Pill */}
         <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center gap-2">
@@ -203,15 +206,16 @@ export const MyTimetableScreen: React.FC = () => {
             </span>
           </div>
 
-          {daySchedule.map((slot) => {
-            const isActiveNow =
-              simulatedHour >= slot.startHour && simulatedHour < slot.endHour;
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {daySchedule.map((slot) => {
+              const isActiveNow =
+                simulatedHour >= slot.startHour && simulatedHour < slot.endHour;
 
-            return (
-              <div
-                key={slot.id}
-                className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col gap-3 transition-all"
-              >
+              return (
+                <div
+                  key={slot.id}
+                  className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col gap-3 transition-all"
+                >
                 {/* Live Status Header */}
                 <div className="flex items-center justify-between">
                   {isActiveNow ? (
@@ -295,6 +299,7 @@ export const MyTimetableScreen: React.FC = () => {
               </div>
             );
           })}
+          </div>
         </div>
 
         {/* Timetable Occupancy Impact Note Card */}
