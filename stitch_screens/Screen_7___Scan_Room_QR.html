@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#f8f9ff;}body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-surface-variant": "#45464d", "secondary-fixed": "#6ffbbe", "primary-container": "#131b2e", "on-primary-fixed": "#131b2e", "tertiary-container": "#00164e", "secondary-container": "#6cf8bb", "outline": "#76777d", "on-secondary-container": "#00714d", "surface-container-highest": "#d3e4fe", "error-container": "#ffdad6", "surface-dim": "#cbdbf5", "outline-variant": "#c6c6cd", "primary-fixed": "#dae2fd", "tertiary-fixed-dim": "#b6c4ff", "surface-tint": "#565e74", "tertiary": "#000000", "on-secondary": "#ffffff", "background": "#f8f9ff", "on-background": "#0b1c30", "surface-variant": "#d3e4fe", "tertiary-fixed": "#dce1ff", "on-primary-fixed-variant": "#3f465c", "surface-container-low": "#eff4ff", "inverse-on-surface": "#eaf1ff", "on-tertiary-container": "#6780d3", "on-error": "#ffffff", "secondary-fixed-dim": "#4edea3", "surface": "#f8f9ff", "surface-container-high": "#dce9ff", "primary-fixed-dim": "#bec6e0", "secondary": "#006c49", "inverse-primary": "#bec6e0", "error": "#ba1a1a", "on-primary-container": "#7c839b", "on-surface": "#0b1c30", "surface-bright": "#f8f9ff", "primary": "#000000", "on-tertiary": "#ffffff", "on-error-container": "#93000a", "on-secondary-fixed-variant": "#005236", "on-tertiary-fixed": "#00164e", "surface-container": "#e5eeff", "on-secondary-fixed": "#002113", "surface-container-lowest": "#ffffff", "on-tertiary-fixed-variant": "#264191", "on-primary": "#ffffff", "inverse-surface": "#213145" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "space-xs": "0.25rem", "space-sm": "0.5rem", "space-md": "1rem", "gutter": "1rem", "space-xl": "2rem", "margin": "1rem", "space-lg": "1.5rem" }, fontFamily: { "title-sm": ["Inter"], "headline-md": ["Inter"], "label-md": ["Inter"], "body-lg": ["Inter"], "label-sm": ["Inter"], "headline-lg": ["Inter"], "headline-sm": ["Inter"], "title-md": ["Inter"], "body-md": ["Inter"], "body-sm": ["Inter"] }, fontSize: { "title-sm": ["15px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "600" }], "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "400" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }], "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-sm": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "title-md": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "600" }], "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }], "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0.005em", "fontWeight": "400" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] pt-safe"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-xs"><button aria-label="Go back" class="min-w-[44px] min-h-[44px] -ml-2 flex items-center justify-center text-on-surface hover:text-on-surface-variant transition-colors" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><h1 class="font-title-md text-title-md text-on-surface truncate">Update Room Status</h1></div><div class="flex items-center"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 bg-surface pb-safe"><div class="flex flex-col w-full px-gutter pb-space-xl">
+<!-- Top Context & Live System Status -->
+<div class="pt-space-md flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface">Spotfree Room Identifier</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">sensors</span>
+        Live Reader
+      </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+      Scan the QR code displayed outside the room to report or check live occupancy.
+    </p>
+</div>
+<!-- Camera Viewfinder Viewport -->
+<div class="mt-space-lg w-full relative">
+<div class="w-full bg-primary-container rounded-2xl shadow-xl overflow-hidden relative flex flex-col items-center justify-between p-6 h-[340px]">
+<!-- Viewfinder Ambient Grid Background -->
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+<svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="24" id="grid" patternunits="userSpaceOnUse" width="24">
+<path d="M 24 0 L 0 0 0 24" fill="none" stroke="#dae2fd" stroke-width="1"></path>
+</pattern>
+</defs>
+<rect fill="url(#grid)" height="100%" width="100%"></rect>
+</svg>
+</div>
+<!-- Top Scanner Utility Controls -->
+<div class="w-full flex items-center justify-between z-10">
+<button aria-label="Toggle Flashlight" class="min-w-[44px] min-h-[44px] rounded-full bg-tertiary-container/80 text-primary-fixed flex items-center justify-center transition-transform active:scale-95 shadow-sm" id="torch-btn" type="button">
+<span class="material-symbols-outlined text-[20px]" id="torch-icon">flashlight_on</span>
+</button>
+<div class="flex items-center gap-1 px-3 py-1 rounded-full bg-surface-container-lowest/10 backdrop-blur-md">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span>
+<span class="font-label-sm text-label-sm text-primary-fixed">Autofocus Active</span>
+</div>
+<button aria-label="Room plaque guide" class="min-w-[44px] min-h-[44px] rounded-full bg-tertiary-container/80 text-primary-fixed flex items-center justify-center transition-transform active:scale-95 shadow-sm" id="guide-btn" type="button">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+</button>
+</div>
+<!-- Scanning Target Reticle & Vector QR -->
+<div class="relative w-52 h-52 flex items-center justify-center my-auto">
+<!-- Reticle Corners (Emerald Accents) -->
+<div class="absolute -top-1 -left-1 w-7 h-7 border-t-[3px] border-l-[3px] border-secondary-fixed rounded-tl-lg"></div>
+<div class="absolute -top-1 -right-1 w-7 h-7 border-t-[3px] border-r-[3px] border-secondary-fixed rounded-tr-lg"></div>
+<div class="absolute -bottom-1 -left-1 w-7 h-7 border-b-[3px] border-l-[3px] border-secondary-fixed rounded-bl-lg"></div>
+<div class="absolute -bottom-1 -right-1 w-7 h-7 border-b-[3px] border-r-[3px] border-secondary-fixed rounded-br-lg"></div>
+<!-- Animated Laser Line -->
+<div class="absolute inset-x-2 h-[2px] bg-secondary-fixed shadow-[0_0_8px_#6cf8bb] animate-[bounce_2.5s_infinite] pointer-events-none z-20"></div>
+<!-- Stylized Clean Vector QR Code (Strictly Vector Shapes) -->
+<div class="w-40 h-40 bg-surface-container-lowest rounded-xl p-3 shadow-inner flex flex-col justify-between items-center relative overflow-hidden">
+<svg class="w-full h-full text-on-surface" fill="currentColor" viewbox="0 0 100 100">
+<!-- Corner Finder 1 (Top Left) -->
+<rect fill="none" height="28" rx="4" stroke="currentColor" stroke-width="4" width="28" x="5" y="5"></rect>
+<rect height="14" rx="2" width="14" x="12" y="12"></rect>
+<!-- Corner Finder 2 (Top Right) -->
+<rect fill="none" height="28" rx="4" stroke="currentColor" stroke-width="4" width="28" x="67" y="5"></rect>
+<rect height="14" rx="2" width="14" x="74" y="12"></rect>
+<!-- Corner Finder 3 (Bottom Left) -->
+<rect fill="none" height="28" rx="4" stroke="currentColor" stroke-width="4" width="28" x="5" y="67"></rect>
+<rect height="14" rx="2" width="14" x="12" y="74"></rect>
+<!-- Matrix Data Dots -->
+<rect height="6" rx="1" width="6" x="42" y="8"></rect>
+<rect height="6" rx="1" width="6" x="52" y="8"></rect>
+<rect height="12" rx="1" width="6" x="42" y="20"></rect>
+<rect height="6" rx="1" width="6" x="52" y="24"></rect>
+<rect height="6" rx="1" width="6" x="8" y="42"></rect>
+<rect height="6" rx="1" width="12" x="20" y="42"></rect>
+<rect height="6" rx="1" width="10" x="8" y="52"></rect>
+<!-- Center Pattern -->
+<rect fill="#006c49" height="24" rx="3" width="24" x="38" y="38"></rect>
+<circle cx="50" cy="50" fill="#ffffff" r="5"></circle>
+<rect height="8" rx="1" width="8" x="70" y="42"></rect>
+<rect height="16" rx="1" width="8" x="84" y="42"></rect>
+<rect height="6" rx="1" width="10" x="70" y="56"></rect>
+<rect height="10" rx="1" width="6" x="42" y="70"></rect>
+<rect height="6" rx="1" width="14" x="54" y="70"></rect>
+<rect height="8" rx="1" width="18" x="42" y="84"></rect>
+<rect height="8" rx="1" width="22" x="70" y="74"></rect>
+<rect height="6" rx="1" width="14" x="78" y="86"></rect>
+</svg>
+<!-- Inner Label within graphic -->
+<div class="absolute bottom-1 bg-surface-container-high/90 px-1.5 py-0.5 rounded text-[8px] font-bold text-on-surface tracking-wider">
+            CME-104
+          </div>
+</div>
+</div>
+<!-- Live viewfinder instruction prompt -->
+<div class="z-10 flex items-center gap-1.5 bg-surface-container-lowest/15 backdrop-blur px-3 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-primary-fixed text-[16px]">center_focus_strong</span>
+<span class="font-label-sm text-label-sm text-primary-fixed">Point camera at the door QR plaque</span>
+</div>
+</div>
+</div>
+<!-- Simulated Status Notification Banner (Triggerable) -->
+<div class="mt-space-md hidden transition-all duration-300" id="scan-feedback">
+<div class="w-full bg-secondary-container rounded-xl p-3.5 flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-on-secondary-container flex items-center justify-center text-on-secondary">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div>
+<p class="font-title-sm text-title-sm text-on-secondary-container">Classroom Identified: CME-104</p>
+<p class="font-label-sm text-label-sm text-on-secondary-container opacity-80">Ground Floor Seminar Room • Status: Free</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-secondary-container">arrow_forward</span>
+</div>
+</div>
+<!-- Primary and Secondary Actions -->
+<div class="mt-space-lg flex flex-col gap-space-sm">
+<!-- Main Scan Simulation Trigger -->
+<button class="w-full h-12 bg-primary text-on-primary rounded-lg font-title-sm text-title-sm flex items-center justify-center gap-2 active:scale-[0.99] transition-transform shadow-sm" id="trigger-scan-btn" type="button">
+<span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+      Scan QR Code
+    </button>
+<p class="text-center font-label-sm text-label-sm text-on-surface-variant">
+      Tap button to simulate instant recognition of CME-104
+    </p>
+<!-- Alternative Flow: Manual Room Input -->
+<div class="mt-space-xs">
+<button class="w-full h-12 bg-surface-container-lowest text-on-surface rounded-lg font-title-sm text-title-sm flex items-center justify-center gap-2 shadow-sm active:bg-surface-container transition-colors" id="manual-btn" type="button">
+<span class="material-symbols-outlined text-[20px] text-outline">dialpad</span>
+        Enter Room Number
+      </button>
+</div>
+</div>
+<!-- Quick Selection Pills Section -->
+<div class="mt-space-lg bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Quick Room Shortcuts</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Recent Locations</span>
+</div>
+<div class="flex items-center gap-space-sm flex-wrap">
+<button class="min-h-[44px] px-3.5 py-2 rounded-lg bg-surface-container flex items-center gap-2 active:bg-surface-container-high transition-colors" onclick="selectRoom('CME-104')" type="button">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-title-sm text-title-sm text-on-surface">CME-104</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Seminar</span>
+</button>
+<button class="min-h-[44px] px-3.5 py-2 rounded-lg bg-surface-container flex items-center gap-2 active:bg-surface-container-high transition-colors" onclick="selectRoom('CME-201')" type="button">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="font-title-sm text-title-sm text-on-surface">CME-201</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Lecture</span>
+</button>
+<button class="min-h-[44px] px-3.5 py-2 rounded-lg bg-surface-container flex items-center gap-2 active:bg-surface-container-high transition-colors" onclick="selectRoom('CME-308')" type="button">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-title-sm text-title-sm text-on-surface">CME-308</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Meeting</span>
+</button>
+</div>
+</div>
+<!-- Bottom Clarification Footer Note -->
+<div class="mt-space-lg flex items-center justify-center gap-2 px-space-sm text-center">
+<span class="material-symbols-outlined text-[18px] text-outline">verified_user</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+      Both students and faculty can update classroom status.
+    </p>
+</div>
+</div>
+<script>
+  // Torch Button Micro-interaction
+  const torchBtn = document.getElementById('torch-btn');
+  const torchIcon = document.getElementById('torch-icon');
+  let isTorchOn = false;
+
+  torchBtn.addEventListener('click', () => {
+    isTorchOn = !isTorchOn;
+    if (isTorchOn) {
+      torchBtn.classList.remove('bg-tertiary-container/80', 'text-primary-fixed');
+      torchBtn.classList.add('bg-secondary-fixed', 'text-on-secondary-fixed');
+      torchIcon.textContent = 'flashlight_off';
+    } else {
+      torchBtn.classList.remove('bg-secondary-fixed', 'text-on-secondary-fixed');
+      torchBtn.classList.add('bg-tertiary-container/80', 'text-primary-fixed');
+      torchIcon.textContent = 'flashlight_on';
+    }
+  });
+
+  // Simulated QR Scan interaction
+  const triggerBtn = document.getElementById('trigger-scan-btn');
+  const feedback = document.getElementById('scan-feedback');
+
+  function showSuccess(roomName = 'CME-104') {
+    feedback.classList.remove('hidden');
+    feedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  triggerBtn.addEventListener('click', () => {
+    triggerBtn.textContent = 'Verifying Plaque...';
+    triggerBtn.classList.add('opacity-80');
+    setTimeout(() => {
+      triggerBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">check_circle</span> Plaque Verified';
+      triggerBtn.classList.remove('opacity-80');
+      showSuccess('CME-104');
+    }, 450);
+  });
+
+  function selectRoom(code) {
+    showSuccess(code);
+  }
+</script></main></body></html>

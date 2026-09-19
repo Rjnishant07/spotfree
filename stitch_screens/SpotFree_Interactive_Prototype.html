@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>SpotFree — Interactive Campus App</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      colors: {
+        brandNavy: '#0f172a',
+        brandPrimary: '#1e3a8a',
+        brandGreen: '#10b981',
+        brandBg: '#f8f9ff',
+      }
+    }
+  }
+}
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+  .laser-anim { animation: scanLine 2s ease-in-out infinite alternate; }
+  @keyframes scanLine {
+    0% { transform: translateY(0); opacity: 0.8; }
+    100% { transform: translateY(180px); opacity: 1; }
+  }
+  ::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body class="flex justify-center items-start min-h-screen antialiased select-none text-slate-800">
+<!-- Mobile Frame (390px / standard smartphone viewport) -->
+<div class="w-full max-w-[412px] min-h-screen bg-[#f8f9ff] flex flex-col relative shadow-2xl overflow-x-hidden pb-16">
+<!-- Prototype Role Switcher Bar -->
+<header class="bg-slate-900 text-white px-3 py-1.5 flex items-center justify-between text-xs sticky top-0 z-50 border-b border-slate-800">
+<div class="flex items-center gap-1.5 cursor-pointer" onclick="navTo('login')">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+<span class="font-bold text-[11px] tracking-tight">SpotFree Prototype</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-slate-950 transition-colors" id="pill-student" onclick="setGlobalRole('student')">Student</button>
+<button class="px-2 py-0.5 rounded text-[10px] font-medium text-slate-300 hover:text-white transition-colors" id="pill-faculty" onclick="setGlobalRole('faculty')">Faculty</button>
+<button class="px-2 py-0.5 rounded text-[10px] font-medium text-slate-300 hover:text-white transition-colors" id="pill-admin" onclick="setGlobalRole('admin')">Admin</button>
+<button class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white ml-0.5" onclick="navTo('login')" title="Go to Login">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+</button>
+</div>
+</header>
+<!-- Live Status Change Broadcast Banner -->
+<div class="bg-emerald-600 text-white px-3 py-1.5 text-xs font-semibold flex items-center justify-between shadow-sm hidden" id="live-banner">
+<div class="flex items-center gap-1.5 overflow-hidden">
+<span class="material-symbols-outlined text-sm shrink-0 animate-spin">sync</span>
+<span class="truncate text-[11px]" id="live-banner-text">Room CME-104 changed to OCCUPIED</span>
+</div>
+<button class="text-white/80 hover:text-white shrink-0 ml-1" onclick="dismissLiveBanner()">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+<!-- Toast Notification System -->
+<div class="fixed top-12 left-1/2 -translate-x-1/2 z-50 pointer-events-none hidden max-w-[360px] w-full px-4" id="toast">
+<div class="bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2.5 border border-slate-700 text-xs font-medium">
+<span class="material-symbols-outlined text-emerald-400 text-base" id="toast-icon">check_circle</span>
+<span id="toast-text">Action completed</span>
+</div>
+</div>
+<!-- Dynamic Views Container -->
+<main class="flex-1 flex flex-col w-full" id="app"></main>
+<!-- Bottom Navigation Bar (Dashboard, Scanner, Status/History, Admin) -->
+<nav class="fixed bottom-0 max-w-[412px] w-full bg-white border-t border-slate-200 px-3 py-1.5 flex items-center justify-around z-40 hidden shadow-md" id="bottom-nav">
+<button class="flex flex-col items-center gap-0.5 py-1 px-3 text-emerald-600 font-bold text-[11px] transition-colors" id="bnav-dashboard" onclick="navBottom('dashboard')">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span>Dashboard</span>
+</button>
+<button class="flex flex-col items-center gap-0.5 py-1 px-3 text-slate-500 hover:text-slate-900 text-[11px] transition-colors" id="bnav-scanner" onclick="navBottom('scanner')">
+<span class="material-symbols-outlined text-xl">qr_code_scanner</span>
+<span>Scanner</span>
+</button>
+<button class="flex flex-col items-center gap-0.5 py-1 px-3 text-slate-500 hover:text-slate-900 text-[11px] transition-colors" id="bnav-status" onclick="navBottom('status')">
+<span class="material-symbols-outlined text-xl" id="bnav-status-icon">meeting_room</span>
+<span id="bnav-status-label">Availability</span>
+</button>
+<button class="flex flex-col items-center gap-0.5 py-1 px-3 text-slate-500 hover:text-slate-900 text-[11px] transition-colors" id="bnav-admin" onclick="navBottom('admin')">
+<span class="material-symbols-outlined text-xl">shield_person</span>
+<span>Admin</span>
+</button>
+</nav>
+<!-- Modals Layer -->
+<div class="relative z-50" id="modal-layer"></div>
+</div>
+<script>
+/**
+ * SpotFree Unified Reactive State & Local Store
+ * Synchronized across all screens, zero photographs, zero labs.
+ */
+const DB = {
+  currentRole: 'student', // 'student' | 'faculty' | 'admin'
+  currentView: 'login',
+  navHistory: [],
+  selectedRoomForAction: 'CME-104',
+  recommendedRoom: null,
+  activeFilterBldg: 'All',
+  activeFilterStatus: 'All',
+  activeFilterType: 'All',
+  adminSearchQuery: '',
+  historyFilterBldg: 'All',
+
+  profiles: {
+    student: {
+      name: 'Aarav Sharma',
+      id: '2024IT1042',
+      dept: 'Dept of Information Technology',
+      roleLabel: 'Student Member',
+      email: 'aarav.sharma@heritageit.edu',
+      avatar: 'A'
+    },
+    faculty: {
+      name: 'Prof. Sharma',
+      id: 'FAC-IT-14',
+      dept: 'Dept of Information Technology',
+      roleLabel: 'Faculty Member',
+      email: 'prof.sharma@heritageit.edu',
+      avatar: 'P'
+    },
+    admin: {
+      name: 'Admin HIT',
+      id: 'ADM-HIT-01',
+      dept: 'Campus Operations & Planning',
+      roleLabel: 'Facility Administrator',
+      email: 'admin.hit@heritageit.edu',
+      avatar: 'H'
+    }
+  },
+
+  rooms: [
+    {
+      id: 'CME-101',
+      bldg: 'CME',
+      floor: 1,
+      type: 'Classroom',
+      capacity: 60,
+      status: 'VACANT', // VACANT, OCCUPIED, RESERVED, NO_INFO
+      timeText: 'Free until 01:15 PM',
+      amenities: ['Projector', 'Air Conditioning', 'Whiteboard'],
+      timeline: [
+        { time: '10:00 - 01:15 PM', text: 'Self Study / Open Period', status: 'Active Free' },
+        { time: '01:15 - 03:00 PM', text: 'Operating Systems Class', status: 'Upcoming' }
+      ]
+    },
+    {
+      id: 'CME-102',
+      bldg: 'CME',
+      floor: 1,
+      type: 'Classroom',
+      capacity: 60,
+      status: 'OCCUPIED',
+      timeText: 'Occupied: CS204 Lecture • Next free: 1:30 PM',
+      amenities: ['Projector', 'Whiteboard', 'Air Conditioning'],
+      timeline: [
+        { time: '10:30 - 01:30 PM', text: 'CS204 Lecture in Session', status: 'Active Occupied' },
+        { time: '01:30 - 03:00 PM', text: 'Open Slot', status: 'Upcoming Free' }
+      ]
+    },
+    {
+      id: 'CME-103',
+      bldg: 'CME',
+      floor: 2,
+      type: 'Seminar Room',
+      capacity: 40,
+      status: 'RESERVED',
+      timeText: 'Dept Session until 2:30 PM',
+      amenities: ['Dual Projectors', 'Wireless Mic', 'Tiered Seating', 'AC'],
+      timeline: [
+        { time: '11:00 - 02:30 PM', text: 'IT Dept Academic Session', status: 'Active Reserved' },
+        { time: '02:30 - 04:00 PM', text: 'Open Seminar Space', status: 'Upcoming Free' }
+      ]
+    },
+    {
+      id: 'CME-104',
+      bldg: 'CME',
+      floor: 1,
+      type: 'Classroom',
+      capacity: 60,
+      status: 'VACANT',
+      timeText: 'Free until 12:30 PM',
+      amenities: ['Air Conditioning', 'Whiteboard', 'Power Outlets', 'Smart Podium'],
+      timeline: [
+        { time: '09:00 - 10:00 AM', text: 'Calculus Lecture', status: 'Ended' },
+        { time: '10:00 - 12:30 PM', text: 'Open Quiet Study Period', status: 'Active Free' },
+        { time: '12:30 - 02:00 PM', text: 'Data Structures Lecture', status: 'Upcoming' }
+      ]
+    },
+    {
+      id: 'CB-102',
+      bldg: 'CB',
+      floor: 1,
+      type: 'Meeting Room',
+      capacity: 20,
+      status: 'OCCUPIED',
+      timeText: 'Occupied until 01:00 PM',
+      amenities: ['Display Screen', 'AC', 'Whiteboard'],
+      timeline: [
+        { time: '11:00 - 01:00 PM', text: 'Student Council Planning', status: 'Active Occupied' }
+      ]
+    },
+    {
+      id: 'ICT-205',
+      bldg: 'ICT',
+      floor: 2,
+      type: 'Classroom',
+      capacity: 70,
+      status: 'VACANT',
+      timeText: 'Free until 04:00 PM',
+      amenities: ['Smart Board', 'AC', 'Power Outlets', 'Sound System'],
+      timeline: [
+        { time: '10:00 - 04:00 PM', text: 'Open Discussion / Study Period', status: 'Active Free' }
+      ]
+    }
+  ],
+
+  history: [
+    { id: 1, room: 'CME-104', from: 'OCCUPIED', to: 'VACANT', by: 'Prof. Sharma', time: '10:02 AM', note: 'Lecture completed early' },
+    { id: 2, room: 'CME-103', from: 'VACANT', to: 'RESERVED', by: 'Admin HIT', time: '09:45 AM', note: 'Dept session booking' },
+    { id: 3, room: 'CB-102', from: 'VACANT', to: 'OCCUPIED', by: 'Prof. Sen', time: '09:15 AM', note: 'Ad-hoc meeting' },
+    { id: 4, room: 'ICT-205', from: 'RESERVED', to: 'VACANT', by: 'IoT Sensor Sync', time: '08:50 AM', note: 'Auto slot release' }
+  ],
+
+  notifications: [
+    { id: 1, title: 'Room Status Alert', desc: 'CME-104 is now VACANT (Updated by Prof. Sharma)', time: '10m ago', unread: true },
+    { id: 2, title: 'Reservation Confirmed', desc: 'CME-103 reserved for IT Dept Session until 2:30 PM', time: '40m ago', unread: true },
+    { id: 3, title: 'Campus Facility Notice', desc: 'CB Building Floor 1 routine HVAC check completed.', time: '2h ago', unread: false }
+  ]
+};
+
+// Helper: current user
+function getCurrentUser() {
+  return DB.profiles[DB.currentRole] || DB.profiles.student;
+}
+
+// Navigation stack management
+function navTo(view, push = true) {
+  if (push && DB.currentView !== view) {
+    DB.navHistory.push(DB.currentView);
+  }
+  DB.currentView = view;
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function navBack() {
+  if (DB.navHistory.length > 0) {
+    const prev = DB.navHistory.pop();
+    DB.currentView = prev;
+  } else {
+    // default fallback
+    DB.currentView = DB.currentRole === 'student' ? 'student-home' : DB.currentRole === 'faculty' ? 'faculty-home' : 'admin-home';
+  }
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setGlobalRole(role) {
+  DB.currentRole = role;
+  DB.navHistory = [];
+  if (role === 'student') navTo('student-home', false);
+  else if (role === 'faculty') navTo('faculty-home', false);
+  else navTo('admin-home', false);
+  showToast(`Switched role to ${role.toUpperCase()} (${getCurrentUser().name})`);
+}
+
+function navBottom(tab) {
+  if (tab === 'dashboard') {
+    if (DB.currentRole === 'student') navTo('student-home');
+    else if (DB.currentRole === 'faculty') navTo('faculty-home');
+    else navTo('admin-home');
+  } else if (tab === 'scanner') {
+    navTo('screen-scan-qr');
+  } else if (tab === 'status') {
+    if (DB.currentRole === 'admin' || DB.currentRole === 'faculty') {
+      navTo('status-history');
+    } else {
+      navTo('rooms-availability');
+    }
+  } else if (tab === 'admin') {
+    DB.currentRole = 'admin';
+    navTo('admin-home');
+  }
+}
+
+// Global Toast
+function showToast(msg, icon = 'check_circle') {
+  const el = document.getElementById('toast');
+  document.getElementById('toast-text').textContent = msg;
+  document.getElementById('toast-icon').textContent = icon;
+  el.classList.remove('hidden');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => el.classList.add('hidden'), 2600);
+}
+
+function showLiveBanner(room, newStatus) {
+  const b = document.getElementById('live-banner');
+  const t = document.getElementById('live-banner-text');
+  if (!b || !t) return;
+  t.textContent = `Room ${room} updated to ${newStatus} (Live Synced)`;
+  b.classList.remove('hidden');
+  clearTimeout(window.__bannerTimer);
+  window.__bannerTimer = setTimeout(() => {
+    b.classList.add('hidden');
+  }, 4500);
+}
+
+function dismissLiveBanner() {
+  const b = document.getElementById('live-banner');
+  if (b) b.classList.add('hidden');
+}
+
+// Status Badges
+function getBadge(status) {
+  if (status === 'VACANT' || status === 'FREE') {
+    return `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>VACANT</span>`;
+  }
+  if (status === 'OCCUPIED') {
+    return `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>OCCUPIED</span>`;
+  }
+  if (status === 'RESERVED') {
+    return `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>RESERVED</span>`;
+  }
+  return `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 text-slate-700 border border-slate-300"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>NO INFO</span>`;
+}
+
+// Centralized status mutation
+function updateRoomStatus(roomId, newStatus, remarks = '') {
+  const r = DB.rooms.find(rm => rm.id === roomId);
+  if (!r) return;
+  const oldStatus = r.status;
+  r.status = newStatus;
+
+  if (newStatus === 'VACANT') {
+    r.timeText = 'Available now for study / session';
+  } else if (newStatus === 'OCCUPIED') {
+    r.timeText = `Occupied in session • ${remarks || 'Active class'}`;
+  } else if (newStatus === 'RESERVED') {
+    r.timeText = `Reserved • ${remarks || 'Campus reservation'}`;
+  } else {
+    r.timeText = 'Sensor pending update';
+  }
+
+  const u = getCurrentUser();
+  DB.history.unshift({
+    id: Date.now(),
+    room: roomId,
+    from: oldStatus,
+    to: newStatus,
+    by: u.name,
+    time: 'Just now',
+    note: remarks || 'Status updated via app'
+  });
+
+  DB.notifications.unshift({
+    id: Date.now(),
+    title: `Room ${roomId} Status Changed`,
+    desc: `Marked as ${newStatus} by ${u.name}`,
+    time: 'Just now',
+    unread: true
+  });
+
+  showLiveBanner(roomId, newStatus);
+  showToast(`${roomId} marked as ${newStatus}`);
+}
+
+// Top App Header
+function appHeader(title, subtitle = null, showBack = false) {
+  const unread = DB.notifications.filter(n => n.unread).length;
+  const user = getCurrentUser();
+  return `
+  <div class="flex items-center justify-between px-4 py-3 bg-[#f8f9ff]/95 border-b border-slate-200 sticky top-7 z-30 backdrop-blur-md">
+    <div class="flex items-center gap-2.5">
+      ${showBack ? `
+        <button onclick="navBack()" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-800 active:scale-95 transition-all" title="Back">
+          <span class="material-symbols-outlined text-lg">arrow_back</span>
+        </button>
+      ` : `
+        <div class="w-8 h-8 rounded-lg bg-[#0f172a] flex items-center justify-center text-emerald-400 shadow-sm">
+          <span class="material-symbols-outlined text-lg">meeting_room</span>
+        </div>
+      `}
+      <div>
+        <h1 class="font-bold text-sm text-slate-900 leading-tight">${title}</h1>
+        ${subtitle ? `<p class="text-[11px] text-slate-500 leading-tight">${subtitle}</p>` : ''}
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="navTo('notifications')" class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-700 relative hover:bg-slate-50 transition-colors" title="Notifications">
+        <span class="material-symbols-outlined text-base">notifications</span>
+        ${unread > 0 ? `<span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>` : ''}
+      </button>
+      <button onclick="navTo('profile')" class="w-8 h-8 rounded-full bg-[#0f172a] text-white font-bold text-xs flex items-center justify-center shadow-sm hover:opacity-90 transition-opacity" title="Profile">
+        ${user.avatar}
+      </button>
+    </div>
+  </div>
+  `;
+}
+
+/* ============================================================
+   SCREEN 1: LOGIN
+   ============================================================ */
+function viewLogin() {
+  const currentU = getCurrentUser();
+  return `
+  <div class="flex flex-col w-full px-5 py-6">
+    <div class="flex flex-col items-center text-center mt-3 mb-6">
+      <div class="w-16 h-16 rounded-2xl bg-[#0f172a] flex items-center justify-center shadow-md mb-3">
+        <span class="material-symbols-outlined text-emerald-400 text-3xl">meeting_room</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <span class="font-extrabold text-2xl tracking-tight text-slate-900">Spot<span class="text-emerald-600">Free</span></span>
+        <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">HIT</span>
+      </div>
+      <p class="text-xs font-medium text-slate-600 mt-1">Heritage Institute of Technology</p>
+      <p class="text-[11px] text-slate-400 italic mt-0.5">Find. Learn. Use. Better Spaces.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+      <div>
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Select Role</label>
+        <div class="grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-xl">
+          <button type="button" onclick="DB.currentRole = 'student'; render();" class="py-1.5 rounded-lg text-xs font-semibold ${DB.currentRole === 'student' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}">Student</button>
+          <button type="button" onclick="DB.currentRole = 'faculty'; render();" class="py-1.5 rounded-lg text-xs font-semibold ${DB.currentRole === 'faculty' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}">Faculty</button>
+          <button type="button" onclick="DB.currentRole = 'admin'; render();" class="py-1.5 rounded-lg text-xs font-semibold ${DB.currentRole === 'admin' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}">Admin</button>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold text-slate-700 block mb-1">University ID / Username</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-lg">badge</span>
+          <input type="text" id="login-uid" value="${currentU.id}" class="w-full h-10 pl-9 pr-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-900 font-medium focus:bg-white focus:outline-none focus:border-slate-400">
+        </div>
+      </div>
+
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <label class="text-xs font-semibold text-slate-700">Password</label>
+          <button type="button" onclick="openForgotPassModal()" class="text-[11px] text-emerald-600 hover:underline">Forgot?</button>
+        </div>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-lg">lock</span>
+          <input type="password" id="login-pwd" value="••••••••••••" class="w-full h-10 pl-9 pr-9 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-slate-400">
+          <span class="material-symbols-outlined absolute right-3 top-2.5 text-slate-400 text-lg cursor-pointer" onclick="togglePassVisibility()">visibility</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between text-xs text-slate-600 pt-0.5">
+        <label class="flex items-center gap-1.5 cursor-pointer">
+          <input type="checkbox" checked class="rounded text-slate-900 accent-slate-900">
+          <span>Remember ID</span>
+        </label>
+        <button type="button" onclick="showToast('HIT Institutional SSO Active', 'verified_user')" class="text-emerald-700 font-medium hover:underline">SSO Key</button>
+      </div>
+
+      <button onclick="handleLoginSubmit()" class="w-full h-11 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all mt-1">
+        <span>LOGIN</span>
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </button>
+    </div>
+
+    <div class="mt-6 flex flex-col items-center text-center gap-2">
+      <div class="flex items-center gap-1.5 bg-slate-200/80 px-3 py-1 rounded-full text-[11px] text-slate-600">
+        <span class="material-symbols-outlined text-emerald-600 text-sm">verified_user</span>
+        <span>HIT Institutional Authentication Gateway</span>
+      </div>
+      <div class="flex gap-3 text-[11px] text-slate-500 mt-1">
+        <button onclick="showToast('Campus Map: CME, CB, ICT Buildings')" class="hover:underline">Campus Map</button>
+        <span>•</span>
+        <button onclick="showToast('Campus Helpdesk: Room 102 CB')" class="hover:underline">Help Desk</button>
+        <span>•</span>
+        <button onclick="showToast('HIT Security Protocol Level 1')" class="hover:underline">Security</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function togglePassVisibility() {
+  const el = document.getElementById('login-pwd');
+  if (el) el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+function handleLoginSubmit() {
+  if (DB.currentRole === 'student') navTo('student-home');
+  else if (DB.currentRole === 'faculty') navTo('faculty-home');
+  else navTo('admin-home');
+  showToast(`Welcome back, ${getCurrentUser().name}!`);
+}
+
+function openForgotPassModal() {
+  const m = document.getElementById('modal-layer');
+  m.innerHTML = `
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-[340px] rounded-2xl p-5 shadow-2xl flex flex-col gap-3">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-sm text-slate-900">Reset Password</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <p class="text-xs text-slate-500 leading-snug">Enter your registered HIT campus email address to receive password reset instructions.</p>
+      <input type="email" placeholder="e.g. aarav.sharma@heritageit.edu" value="${getCurrentUser().email}" class="w-full text-xs p-2.5 rounded-lg border border-slate-200">
+      <div class="flex gap-2 mt-1">
+        <button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg">Cancel</button>
+        <button onclick="closeModal(); showToast('Reset instructions sent to your email.');" class="flex-1 py-2 bg-[#0f172a] text-white text-xs font-bold rounded-lg">Send Link</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+/* ============================================================
+   SCREEN 2: STUDENT DASHBOARD
+   ============================================================ */
+function viewStudentHome() {
+  const vacantCount = DB.rooms.filter(r => r.status === 'VACANT' || r.status === 'FREE').length;
+  const user = getCurrentUser();
+
+  return `
+  ${appHeader('SpotFree HIT', 'Heritage Institute of Technology', false)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-4">
+    
+    <!-- Welcome Header Card -->
+    <div class="bg-[#0f172a] text-white p-4 rounded-2xl shadow-sm relative overflow-hidden">
+      <div class="relative z-10">
+        <span class="inline-block bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1">Student Hub</span>
+        <h2 class="text-base font-bold">Welcome, ${user.name}</h2>
+        <p class="text-slate-300 text-xs mt-0.5">Find available classrooms & seminar spaces. <span class="text-emerald-400 font-semibold">${vacantCount} spaces vacant</span> right now.</p>
+      </div>
+    </div>
+
+    <!-- Quick Search Card -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-emerald-600 text-base">search</span>
+          Find a Room
+        </h3>
+        <span class="text-[10px] text-slate-400">Live Campus Sensors</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Building</label>
+          <select id="search-bldg" class="w-full text-xs p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 font-medium">
+            <option value="All">All Buildings</option>
+            <option value="CME" selected>CME Building</option>
+            <option value="CB">CB Building</option>
+            <option value="ICT">ICT Building</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Date</label>
+          <div class="w-full text-xs p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 font-medium flex items-center justify-between">
+            <span>Today (Nov 18)</span>
+            <span class="material-symbols-outlined text-xs text-slate-400">calendar_today</span>
+          </div>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Start Time</label>
+          <select class="w-full text-xs p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 font-medium">
+            <option selected>Right Now (11:00 AM)</option>
+            <option>11:30 AM</option>
+            <option>12:00 PM</option>
+            <option>01:00 PM</option>
+            <option>02:30 PM</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Duration</label>
+          <select class="w-full text-xs p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 font-medium">
+            <option>45 Minutes</option>
+            <option selected>1 Hour</option>
+            <option>1.5 Hours</option>
+            <option>2 Hours</option>
+          </select>
+        </div>
+      </div>
+
+      <button onclick="executeStudentSearch()" class="w-full py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow active:scale-95 transition-all mt-1">
+        <span class="material-symbols-outlined text-sm">search</span>
+        <span>Find Available Rooms</span>
+      </button>
+    </div>
+
+    <!-- Scanner & Room Entry Quick Shortcut -->
+    <div class="grid grid-cols-2 gap-2">
+      <button onclick="navTo('screen-scan-qr')" class="p-3 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-1 text-center active:scale-95 transition-all">
+        <span class="material-symbols-outlined text-emerald-600 text-2xl">qr_code_scanner</span>
+        <span class="text-xs font-bold text-slate-900">Scan Room QR</span>
+        <span class="text-[10px] text-slate-400">Classroom plaque scan</span>
+      </button>
+      <button onclick="navTo('screen-enter-room')" class="p-3 bg-white hover:bg-slate-50 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-1 text-center active:scale-95 transition-all">
+        <span class="material-symbols-outlined text-slate-700 text-2xl">pin</span>
+        <span class="text-xs font-bold text-slate-900">Enter Room No.</span>
+        <span class="text-[10px] text-slate-400">e.g. CME-104</span>
+      </button>
+    </div>
+
+    <!-- Suggest Best Room Callout -->
+    <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-2xl flex items-center justify-between gap-2 shadow-sm">
+      <div class="flex items-start gap-2">
+        <span class="material-symbols-outlined text-emerald-700 text-xl mt-0.5">auto_awesome</span>
+        <div>
+          <h4 class="text-xs font-bold text-slate-900">Suggest Best Room</h4>
+          <p class="text-[11px] text-slate-600 leading-snug">Let algorithm match the optimal space based on your group size.</p>
+        </div>
+      </div>
+      <button onclick="navTo('wizard-req')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow shrink-0 active:scale-95 transition-all">
+        Find Best
+      </button>
+    </div>
+
+    <!-- Key Featured Rooms -->
+    <div class="flex flex-col gap-1.5">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Rooms Overview</span>
+        <button onclick="DB.activeFilterBldg='All'; DB.activeFilterStatus='All'; navTo('rooms-availability');" class="text-xs font-bold text-emerald-700 hover:underline">View All Rooms (${DB.rooms.length})</button>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        ${DB.rooms.slice(0, 4).map(r => `
+          <div onclick="openRoomDetails('${r.id}')" class="p-3 bg-white rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:border-emerald-500 transition-all">
+            <div class="flex justify-between items-start">
+              <span class="font-bold text-xs text-slate-900">${r.id}</span>
+              ${r.status === 'VACANT' || r.status === 'FREE' ? '<span class="w-2 h-2 rounded-full bg-emerald-500"></span>' : r.status === 'OCCUPIED' ? '<span class="w-2 h-2 rounded-full bg-rose-500"></span>' : '<span class="w-2 h-2 rounded-full bg-amber-500"></span>'}
+            </div>
+            <p class="text-[10px] text-slate-500">${r.type} • Cap ${r.capacity}</p>
+            <span class="text-[10px] font-bold ${r.status === 'VACANT' || r.status === 'FREE' ? 'text-emerald-700' : r.status === 'OCCUPIED' ? 'text-rose-700' : 'text-amber-700'} block mt-1 truncate">${r.status}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+  </div>
+  `;
+}
+
+function executeStudentSearch() {
+  const bldg = document.getElementById('search-bldg') ? document.getElementById('search-bldg').value : 'All';
+  DB.activeFilterBldg = bldg;
+  DB.activeFilterStatus = 'All';
+  navTo('rooms-availability');
+}
+
+/* ============================================================
+   SCREEN 3: ROOM AVAILABILITY / DIRECTORY
+   ============================================================ */
+function viewRoomsAvailability() {
+  const filtered = DB.rooms.filter(r => {
+    if (DB.activeFilterBldg !== 'All' && r.bldg !== DB.activeFilterBldg) return false;
+    if (DB.activeFilterStatus !== 'All') {
+      if (DB.activeFilterStatus === 'VACANT' && r.status !== 'VACANT' && r.status !== 'FREE') return false;
+      if (DB.activeFilterStatus === 'OCCUPIED' && r.status !== 'OCCUPIED') return false;
+      if (DB.activeFilterStatus === 'RESERVED' && r.status !== 'RESERVED') return false;
+    }
+    if (DB.activeFilterType !== 'All' && r.type !== DB.activeFilterType) return false;
+    return true;
+  });
+
+  return `
+  ${appHeader('Room Availability', `${DB.activeFilterBldg === 'All' ? 'All Campus' : DB.activeFilterBldg + ' Building'}`, true)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-3">
+    
+    <!-- Building Filters -->
+    <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+      ${['All', 'CME', 'CB', 'ICT'].map(b => `
+        <button onclick="DB.activeFilterBldg = '${b}'; render();" class="px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${DB.activeFilterBldg === b ? 'bg-[#0f172a] text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}">
+          ${b === 'All' ? 'All Buildings' : b + ' Building'}
+        </button>
+      `).join('')}
+    </div>
+
+    <!-- Status Filters -->
+    <div class="flex items-center justify-between gap-1">
+      <div class="flex items-center gap-1 overflow-x-auto">
+        ${['All', 'VACANT', 'OCCUPIED', 'RESERVED'].map(st => `
+          <button onclick="DB.activeFilterStatus = '${st}'; render();" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${DB.activeFilterStatus === st ? 'bg-emerald-600 text-white' : 'bg-white border border-slate-200 text-slate-700'}">
+            ${st}
+          </button>
+        `).join('')}
+      </div>
+      <button onclick="navTo('wizard-req')" class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-[11px] font-bold flex items-center gap-1 shrink-0">
+        <span class="material-symbols-outlined text-xs">auto_awesome</span>
+        <span>Suggest</span>
+      </button>
+    </div>
+
+    <!-- Filter Count Header -->
+    <div class="flex items-center justify-between text-xs text-slate-500 px-0.5">
+      <span>Found <b class="text-slate-800">${filtered.length}</b> spaces</span>
+      <select onchange="DB.activeFilterType = this.value; render();" class="text-xs bg-transparent border-none font-bold text-slate-800 focus:ring-0 cursor-pointer">
+        <option value="All" ${DB.activeFilterType === 'All' ? 'selected' : ''}>All Space Types</option>
+        <option value="Classroom" ${DB.activeFilterType === 'Classroom' ? 'selected' : ''}>Classroom</option>
+        <option value="Seminar Room" ${DB.activeFilterType === 'Seminar Room' ? 'selected' : ''}>Seminar Room</option>
+        <option value="Meeting Room" ${DB.activeFilterType === 'Meeting Room' ? 'selected' : ''}>Meeting Room</option>
+      </select>
+    </div>
+
+    <!-- Cards List -->
+    <div class="flex flex-col gap-2.5">
+      ${filtered.length === 0 ? `
+        <div class="p-6 text-center bg-white rounded-2xl border border-dashed border-slate-300">
+          <p class="text-xs font-bold text-slate-700">No rooms match this filter</p>
+          <button onclick="DB.activeFilterBldg='All'; DB.activeFilterStatus='All'; DB.activeFilterType='All'; render();" class="mt-2 px-3 py-1 bg-slate-100 text-xs font-semibold rounded-lg">Reset Filters</button>
+        </div>
+      ` : filtered.map(r => `
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-2">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <h3 class="font-bold text-sm text-slate-900">${r.id}</h3>
+                <span class="text-[10px] font-semibold bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded">${r.bldg} • Floor ${r.floor}</span>
+              </div>
+              <p class="text-xs text-slate-500 font-medium">${r.type} • Cap: ${r.capacity} seats</p>
+            </div>
+            ${getBadge(r.status)}
+          </div>
+
+          <div class="flex items-center gap-1 text-xs text-slate-600 font-medium">
+            <span class="material-symbols-outlined text-sm text-slate-400">schedule</span>
+            <span class="truncate">${r.timeText}</span>
+          </div>
+
+          <div class="flex items-center gap-2 pt-1.5 border-t border-slate-100">
+            <button onclick="openRoomDetails('${r.id}')" class="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-all">
+              <span>View Details</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </button>
+            <button onclick="openUpdateStatusDirect('${r.id}')" class="px-3 py-1.5 bg-[#0f172a] hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all">
+              Update
+            </button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+  </div>
+  `;
+}
+
+function openRoomDetails(roomId) {
+  DB.selectedRoomForAction = roomId;
+  navTo('room-detail');
+}
+
+function openUpdateStatusDirect(roomId) {
+  DB.selectedRoomForAction = roomId;
+  navTo('screen-update-status');
+}
+
+/* ============================================================
+   SCREEN 4: ROOM DETAILS
+   ============================================================ */
+function viewRoomDetail() {
+  const r = DB.rooms.find(rm => rm.id === DB.selectedRoomForAction) || DB.rooms[0];
+  return `
+  ${appHeader(r.id, `${r.bldg} Building • Floor ${r.floor}`, true)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-4">
+    
+    <!-- Clean Detail Header Card (Strictly NO photographs) -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-[#0f172a]">
+            <span class="material-symbols-outlined text-2xl">
+              ${r.type === 'Classroom' ? 'school' : r.type === 'Seminar Room' ? 'co_present' : 'groups'}
+            </span>
+          </div>
+          <div>
+            <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">${r.bldg} Building</span>
+            <h2 class="text-lg font-bold text-slate-900 leading-tight">${r.id}</h2>
+            <p class="text-xs text-slate-500">${r.type}</p>
+          </div>
+        </div>
+        ${getBadge(r.status)}
+      </div>
+
+      <div class="bg-slate-50 p-2.5 rounded-xl flex items-center justify-between text-xs">
+        <div class="flex items-center gap-1.5 text-slate-700 font-medium">
+          <span class="material-symbols-outlined text-emerald-600 text-sm">nest_clock_farsight_analog</span>
+          <span class="truncate">${r.timeText}</span>
+        </div>
+        <span class="text-[10px] text-slate-400 font-bold shrink-0 ml-1">Live Sensor</span>
+      </div>
+    </div>
+
+    <!-- Specs Grid -->
+    <div class="grid grid-cols-3 gap-2 text-center">
+      <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+        <span class="material-symbols-outlined text-slate-400 text-lg">chair</span>
+        <span class="block text-xs font-bold text-slate-900 mt-0.5">${r.capacity}</span>
+        <span class="text-[10px] text-slate-400">Seats</span>
+      </div>
+      <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+        <span class="material-symbols-outlined text-slate-400 text-lg">layers</span>
+        <span class="block text-xs font-bold text-slate-900 mt-0.5">Floor ${r.floor}</span>
+        <span class="text-[10px] text-slate-400">Level</span>
+      </div>
+      <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+        <span class="material-symbols-outlined text-slate-400 text-lg">category</span>
+        <span class="block text-xs font-bold text-slate-900 mt-0.5">${r.type.split(' ')[0]}</span>
+        <span class="text-[10px] text-slate-400">Space Type</span>
+      </div>
+    </div>
+
+    <!-- Amenities -->
+    <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col gap-2">
+      <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Amenities & Features</h3>
+      <div class="grid grid-cols-2 gap-2 pt-0.5">
+        ${r.amenities.map(a => `
+          <div class="flex items-center gap-1.5 text-xs text-slate-700">
+            <span class="material-symbols-outlined text-emerald-600 text-sm">check_circle</span>
+            <span>${a}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Daily Timetable -->
+    <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col gap-2.5">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Today's Schedule</h3>
+        <span class="text-[10px] text-slate-400">HIT Timetable</span>
+      </div>
+      <div class="flex flex-col gap-2 border-l-2 border-slate-200 pl-3 ml-1.5">
+        ${r.timeline.map(slot => `
+          <div class="flex flex-col gap-0.5 relative">
+            <span class="w-2 h-2 rounded-full absolute -left-[17px] top-1.5 ${slot.status.includes('Active') ? 'bg-emerald-500' : slot.status === 'Ended' ? 'bg-slate-300' : 'bg-slate-400'}"></span>
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold ${slot.status === 'Ended' ? 'text-slate-400 line-through' : 'text-slate-900'}">${slot.time}</span>
+              <span class="text-[10px] px-1.5 rounded font-bold ${slot.status.includes('Active') ? 'bg-emerald-100 text-emerald-800' : slot.status === 'Ended' ? 'bg-slate-100 text-slate-500' : 'bg-blue-50 text-blue-700'}">${slot.status}</span>
+            </div>
+            <p class="text-xs text-slate-500">${slot.text}</p>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col gap-2 pt-1">
+      <button onclick="navTo('screen-update-status')" class="w-full py-3 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow active:scale-95 transition-all">
+        <span class="material-symbols-outlined text-base">sync_saved_locally</span>
+        <span>Update Room Status</span>
+      </button>
+      <button onclick="navBack()" class="w-full py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition-all">
+        Back
+      </button>
+    </div>
+
+  </div>
+  `;
+}
+
+/* ============================================================
+   SCREEN 5: SUGGEST BEST ROOM (REQUIREMENTS)
+   ============================================================ */
+function viewWizardReq() {
+  return `
+  ${appHeader('Smart Room Finder', 'Step 1 of 2: Requirements', true)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-4">
+    <div class="bg-slate-100 p-3 rounded-xl flex items-center gap-2">
+      <span class="material-symbols-outlined text-emerald-600 text-xl">psychology</span>
+      <p class="text-xs text-slate-700 leading-snug">Select your activity requirements to find the best currently available classroom or seminar room.</p>
+    </div>
+
+    <form onsubmit="handleProcessWizard(event)" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-4">
+      <div>
+        <label class="text-xs font-bold text-slate-800 block mb-1.5">Primary Purpose</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="p-2 rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-medium cursor-pointer hover:border-slate-300">
+            <input type="radio" name="wiz_p" value="Individual Study" checked class="accent-emerald-600">
+            <span>Individual Study</span>
+          </label>
+          <label class="p-2 rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-medium cursor-pointer hover:border-slate-300">
+            <input type="radio" name="wiz_p" value="Group Study" class="accent-emerald-600">
+            <span>Group Study</span>
+          </label>
+          <label class="p-2 rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-medium cursor-pointer hover:border-slate-300">
+            <input type="radio" name="wiz_p" value="Project Work" class="accent-emerald-600">
+            <span>Project Work</span>
+          </label>
+          <label class="p-2 rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-medium cursor-pointer hover:border-slate-300">
+            <input type="radio" name="wiz_p" value="Meeting" class="accent-emerald-600">
+            <span>Meeting</span>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs font-bold text-slate-800 block mb-1">Number of People</label>
+        <select id="wiz-ppl" class="w-full text-xs p-2.5 rounded-lg bg-slate-50 border border-slate-200 font-medium">
+          <option value="1">1 Person</option>
+          <option value="4" selected>2 - 5 People</option>
+          <option value="12">6 - 15 People</option>
+          <option value="30">16+ People</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-xs font-bold text-slate-800 block mb-1">Preferred Building</label>
+        <select id="wiz-bldg" class="w-full text-xs p-2.5 rounded-lg bg-slate-50 border border-slate-200 font-medium">
+          <option value="Any" selected>Any Building (Best Match)</option>
+          <option value="CME">CME Building Only</option>
+          <option value="CB">CB Building Only</option>
+          <option value="ICT">ICT Building Only</option>
+        </select>
+      </div>
+
+      <button type="submit" class="w-full py-3 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow active:scale-95 transition-all mt-1">
+        <span class="material-symbols-outlined text-sm text-emerald-400">auto_awesome</span>
+        <span>Find Best Room</span>
+      </button>
+    </form>
+  </div>
+  `;
+}
+
+function handleProcessWizard(e) {
+  e.preventDefault();
+  const b = document.getElementById('wiz-bldg').value;
+  let candidate = DB.rooms.find(r => (r.status === 'VACANT' || r.status === 'FREE') && (b === 'Any' || r.bldg === b));
+  if (!candidate) candidate = DB.rooms.find(r => r.status === 'VACANT' || r.status === 'FREE') || DB.rooms[0];
+  DB.recommendedRoom = candidate;
+  navTo('wizard-res');
+}
+
+/* ============================================================
+   SCREEN 6: RECOMMENDED ROOM (STEP 2)
+   ============================================================ */
+function viewWizardRes() {
+  const r = DB.recommendedRoom || DB.rooms.find(rm => rm.status === 'VACANT') || DB.rooms[0];
+  const alt = DB.rooms.filter(rm => rm.id !== r.id && (rm.status === 'VACANT' || rm.status === 'FREE')).slice(0, 2);
+
+  return `
+  ${appHeader('Smart Room Finder', 'Step 2 of 2: Recommended Space', true)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-4">
+    
+    <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center gap-2 text-emerald-900">
+      <span class="material-symbols-outlined text-emerald-700 text-xl">verified</span>
+      <div>
+        <p class="text-xs font-bold">Optimal Recommendation Identified</p>
+        <p class="text-[11px] text-emerald-800">Fits your group size and free for the required study duration.</p>
+      </div>
+    </div>
+
+    <!-- Recommended Card -->
+    <div class="bg-white p-4 rounded-2xl border-2 border-emerald-500 shadow-md flex flex-col gap-3">
+      <div class="flex items-start justify-between">
+        <div>
+          <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase">98% Match</span>
+          <h2 class="text-xl font-extrabold text-slate-900 mt-1">${r.id}</h2>
+          <p class="text-xs text-slate-500">${r.bldg} Building • Floor ${r.floor} • ${r.type}</p>
+        </div>
+        ${getBadge(r.status)}
+      </div>
+
+      <div class="bg-slate-50 p-2.5 rounded-lg flex items-center justify-between text-xs text-slate-700">
+        <span class="font-medium truncate">${r.timeText}</span>
+        <span class="font-bold shrink-0 ml-2">${r.capacity} seats</span>
+      </div>
+
+      <div class="flex flex-col gap-1 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+        <span class="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Why this room?</span>
+        <span>• Optimal capacity match for your group</span>
+        <span>• Verified vacant with active power outlets and AC</span>
+        <span>• Convenient floor access</span>
+      </div>
+
+      <div class="flex items-center gap-2 pt-1">
+        <button onclick="openRoomDetails('${r.id}')" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold transition-all">
+          View Room Details
+        </button>
+        <button onclick="openUpdateStatusDirect('${r.id}')" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition-all">
+          Select Room
+        </button>
+      </div>
+    </div>
+
+    <!-- Alternative Options -->
+    <div class="flex flex-col gap-1.5">
+      <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Alternative Available Rooms</span>
+      ${alt.length === 0 ? '<p class="text-xs text-slate-400 italic">No other vacant rooms at this moment.</p>' : alt.map(a => `
+        <div class="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-xs text-slate-900">${a.id}</span>
+              <span class="text-[10px] text-slate-500">${a.bldg} • ${a.type}</span>
+            </div>
+            <p class="text-[11px] text-emerald-700 font-semibold">${a.timeText}</p>
+          </div>
+          <button onclick="openRoomDetails('${a.id}')" class="px-2.5 py-1 text-xs font-bold text-emerald-700 hover:bg-slate-100 rounded-md">
+            View
+          </button>
+        </div>
+      `).join('')}
+    </div>
+
+  </div>
+  `;
+}
+
+/* ============================================================
+   SCREEN 7: SCAN ROOM QR (Screen 7)
+   ============================================================ */
+function viewScanQr() {
+  return `
+  <div class="w-full h-[88vh] bg-slate-950 flex flex-col justify-between text-white relative overflow-hidden">
+    <div class="flex items-center justify-between p-4 z-20 bg-gradient-to-b from-black/80 to-transparent">
+      <button onclick="navBack()" class="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-white">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+      <div class="text-center">
+        <span class="text-xs font-bold tracking-wider text-emerald-400">Door Plaque Scanner</span>
+        <span class="block text-[10px] text-slate-400">Aim at Classroom Door Plaque</span>
+      </div>
+      <button onclick="showToast('Flashlight enabled', 'flash_on')" class="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-white">
+        <span class="material-symbols-outlined text-lg">flash_on</span>
+      </button>
+    </div>
+
+    <div class="relative flex-1 flex items-center justify-center p-6">
+      <div class="w-60 h-60 border-2 border-emerald-400 rounded-2xl relative flex items-center justify-center shadow-2xl backdrop-blur-[1px]">
+        <span class="absolute -top-1 -left-1 w-5 h-5 border-t-4 border-l-4 border-emerald-400"></span>
+        <span class="absolute -top-1 -right-1 w-5 h-5 border-t-4 border-r-4 border-emerald-400"></span>
+        <span class="absolute -bottom-1 -left-1 w-5 h-5 border-b-4 border-l-4 border-emerald-400"></span>
+        <span class="absolute -bottom-1 -right-1 w-5 h-5 border-b-4 border-r-4 border-emerald-400"></span>
+        
+        <div class="absolute top-2 left-2 right-2 h-0.5 bg-emerald-400 shadow-[0_0_8px_#34d399] laser-anim"></div>
+
+        <div class="flex flex-col items-center text-center p-3 bg-slate-900/80 rounded-xl border border-slate-700">
+          <span class="material-symbols-outlined text-4xl text-emerald-400 mb-1">qr_code_2</span>
+          <span class="text-xs font-mono font-bold text-white">HIT-CME-104-QR</span>
+          <span class="text-[10px] text-slate-400">Classroom Door Plaque</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-4 bg-gradient-to-t from-black to-transparent flex flex-col gap-2.5 z-20">
+      <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-700 flex items-center justify-between">
+        <div>
+          <h4 class="text-xs font-bold text-white">Simulate CME-104 Plaque</h4>
+          <p class="text-[11px] text-slate-300">Floor 1 • Classroom</p>
+        </div>
+        <button onclick="handleSimulatedScan('CME-104')" class="px-3 py-1.5 bg-emerald-500 text-slate-950 font-bold rounded-lg text-xs">
+          Scan Now
+        </button>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="handleSimulatedScan('CME-104')" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow">
+          <span class="material-symbols-outlined text-sm">document_scanner</span>
+          Scan CME-104
+        </button>
+        <button onclick="navTo('screen-enter-room')" class="px-3.5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold">
+          Enter Room No.
+        </button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function handleSimulatedScan(roomId) {
+  DB.selectedRoomForAction = roomId;
+  showToast(`QR verified: ${roomId} identified`);
+  navTo('screen-room-identified');
+}
+
+/* ============================================================
+   SCREEN 7B: ENTER ROOM NUMBER (Screen 7B)
+   ============================================================ */
+function viewEnterRoomNumber() {
+  return `
+  ${appHeader('Enter Room Number', 'Screen 7B: Manual Entry', true)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-4">
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3">
+      <div>
+        <label class="text-xs font-bold text-slate-800 block mb-1">Enter Room Code</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-lg">meeting_room</span>
+          <input id="manual-room-input" type="text" value="CME-104" placeholder="e.g. CME-104" class="w-full h-10 pl-9 pr-3 rounded-lg bg-slate-50 border border-slate-200 font-bold text-xs uppercase focus:bg-white focus:outline-none focus:border-slate-400">
+        </div>
+      </div>
+
+      <div>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Quick Campus Shortcuts:</span>
+        <div class="flex flex-wrap gap-1.5 mt-1.5">
+          ${DB.rooms.map(r => `
+            <button type="button" onclick="document.getElementById('manual-room-input').value = '${r.id}'" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-mono font-medium">${r.id}</button>
+          `).join('')}
+        </div>
+      </div>
+
+      <button onclick="submitManualRoomEntry()" class="w-full py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1 shadow mt-1">
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        <span>Identify Room</span>
+      </button>
+    </div>
+  </div>
+  `;
+}
+
+function submitManualRoomEntry() {
+  const val = document.getElementById('manual-room-input').value.trim().toUpperCase();
+  const found = DB.rooms.find(r => r.id === val);
+  if (found) {
+    DB.selectedRoomForAction = found.id;
+    navTo('screen-room-identified');
+  } else {
+    showToast(`Room "${val}" not found in HIT directory`, 'error');
+  }
+}
+
+/* ============================================================
+   SCREEN 8: ROOM IDENTIFIED (Screen 8)
+   ============================================================ */
+function viewRoomIdentified() {
+  const r = DB.rooms.find(rm => rm.id === DB.selectedRoomForAction) || DB.rooms[0];
+  return `
+  ${appHeader('Room Identified', 'Screen 8', true)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-4">
+    
+    <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center gap-2 text-emerald-900">
+      <span class="material-symbols-outlined text-emerald-700 text-xl">qr_code_scanner</span>
+      <div>
+        <p class="text-xs font-bold">Classroom Plaque Confirmed</p>
+        <p class="text-[11px] text-emerald-800">Connected with campus sensor for ${r.id}</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3">
+      <div class="flex items-start justify-between">
+        <div>
+          <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">${r.bldg} Building • Floor ${r.floor}</span>
+          <h2 class="text-xl font-bold text-slate-900 mt-0.5">${r.id}</h2>
+          <p class="text-xs text-slate-500">${r.type} • ${r.capacity} seats</p>
+        </div>
+        ${getBadge(r.status)}
+      </div>
+
+      <div class="bg-slate-50 p-2.5 rounded-lg flex items-center justify-between text-xs text-slate-700">
+        <span class="font-medium">${r.timeText}</span>
+      </div>
+
+      <div class="pt-2 flex flex-col gap-2">
+        <button onclick="navTo('screen-update-status')" class="w-full py-3 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow active:scale-95 transition-all">
+          <span class="material-symbols-outlined text-sm">edit_calendar</span>
+          <span>Update Room Status</span>
+        </button>
+        <button onclick="openRoomDetails('${r.id}')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-semibold">
+          View Room Details
+        </button>
+      </div>
+    </div>
+
+  </div>
+  `;
+}
+
+/* ============================================================
+   SCREEN 9: UPDATE ROOM STATUS (Screen 9)
+   ============================================================ */
+let activeChoiceStatus = 'VACANT';
+
+function viewUpdateStatus() {
+  const r = DB.rooms.find(rm => rm.id === DB.selectedRoomForAction) || DB.rooms[0];
+  activeChoiceStatus = r.status === 'FREE' ? 'VACANT' : r.status;
+
+  return `
+  ${appHeader('Update Room Status', `Screen 9: ${r.id}`, true)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-4">
+    
+    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-[10px] font-bold text-emerald-700 uppercase">${r.bldg} Building • Floor ${r.floor}</span>
+        <h2 class="text-base font-bold text-slate-900">${r.id}</h2>
+        <p class="text-xs text-slate-500">${r.type}</p>
+      </div>
+      <div>
+        <span class="text-[10px] text-slate-400 block text-right mb-0.5">Current</span>
+        ${getBadge(r.status)}
+      </div>
+    </div>
+
+    <form onsubmit="handleConfirmStatusUpdate(event, '${r.id}')" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3">
+      <label class="text-xs font-bold text-slate-800 uppercase tracking-wider">Select New Status</label>
+      
+      <div class="grid grid-cols-3 gap-2">
+        <button type="button" onclick="selectStatusTab('VACANT')" id="btn-st-vacant" class="p-2.5 rounded-xl border-2 flex flex-col items-center justify-center gap-1 ${activeChoiceStatus === 'VACANT' ? 'border-emerald-500 bg-emerald-50 text-emerald-800 font-bold' : 'border-slate-200 text-slate-600'}">
+          <span class="material-symbols-outlined text-xl text-emerald-600">check_circle</span>
+          <span class="text-xs">VACANT</span>
+        </button>
+        <button type="button" onclick="selectStatusTab('OCCUPIED')" id="btn-st-occupied" class="p-2.5 rounded-xl border-2 flex flex-col items-center justify-center gap-1 ${activeChoiceStatus === 'OCCUPIED' ? 'border-rose-500 bg-rose-50 text-rose-800 font-bold' : 'border-slate-200 text-slate-600'}">
+          <span class="material-symbols-outlined text-xl text-rose-600">block</span>
+          <span class="text-xs">OCCUPIED</span>
+        </button>
+        <button type="button" onclick="selectStatusTab('RESERVED')" id="btn-st-reserved" class="p-2.5 rounded-xl border-2 flex flex-col items-center justify-center gap-1 ${activeChoiceStatus === 'RESERVED' ? 'border-amber-500 bg-amber-50 text-amber-800 font-bold' : 'border-slate-200 text-slate-600'}">
+          <span class="material-symbols-outlined text-xl text-amber-600">hourglass_top</span>
+          <span class="text-xs">RESERVED</span>
+        </button>
+      </div>
+
+      <div id="reserved-period-box" class="${activeChoiceStatus === 'RESERVED' ? 'block' : 'hidden'} p-2.5 bg-amber-50 rounded-xl border border-amber-200">
+        <label class="text-[11px] font-bold text-amber-900 block mb-1">Reserved Until</label>
+        <select id="reserved-until-input" class="w-full text-xs p-2 rounded-lg bg-white border border-amber-300 font-medium">
+          <option>12:30 PM</option>
+          <option>01:30 PM</option>
+          <option selected>02:30 PM</option>
+          <option>04:00 PM</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-xs font-bold text-slate-800 block mb-1">Remarks / Note</label>
+        <input id="status-note-input" type="text" value="Updated via mobile client" placeholder="e.g. Lecture ended / Meeting session" class="w-full text-xs p-2 rounded-lg bg-slate-50 border border-slate-200 font-medium">
+      </div>
+
+      <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow mt-1 active:scale-95 transition-all">
+        <span class="material-symbols-outlined text-sm">cloud_upload</span>
+        <span>Broadcast Status Change</span>
+      </button>
+    </form>
+
+  </div>
+  `;
+}
+
+function selectStatusTab(st) {
+  activeChoiceStatus = st;
+  ['VACANT', 'OCCUPIED', 'RESERVED'].forEach(s => {
+    const el = document.getElementById('btn-st-' + s.toLowerCase());
+    if (!el) return;
+    if (s === st) {
+      el.className = `p-2.5 rounded-xl border-2 flex flex-col items-center justify-center gap-1 font-bold ${s === 'VACANT' ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : s === 'OCCUPIED' ? 'border-rose-500 bg-rose-50 text-rose-800' : 'border-amber-500 bg-amber-50 text-amber-800'}`;
+    } else {
+      el.className = 'p-2.5 rounded-xl border-2 border-slate-200 text-slate-600 flex flex-col items-center justify-center gap-1';
+    }
+  });
+
+  const resBox = document.getElementById('reserved-period-box');
+  if (resBox) {
+    resBox.className = st === 'RESERVED' ? 'block p-2.5 bg-amber-50 rounded-xl border border-amber-200' : 'hidden';
+  }
+}
+
+function handleConfirmStatusUpdate(e, roomId) {
+  e.preventDefault();
+  const note = document.getElementById('status-note-input') ? document.getElementById('status-note-input').value : '';
+  updateRoomStatus(roomId, activeChoiceStatus, note);
+  navTo('screen-status-updated');
+}
+
+/* ============================================================
+   SCREEN 10: STATUS UPDATED (Screen 10)
+   ============================================================ */
+function viewStatusUpdated() {
+  const r = DB.rooms.find(rm => rm.id === DB.selectedRoomForAction) || DB.rooms[0];
+  const user = getCurrentUser();
+
+  return `
+  <div class="flex flex-col px-4 pt-6 pb-8 gap-4 items-center text-center">
+    <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+      <span class="material-symbols-outlined text-3xl">check_circle</span>
+    </div>
+    <div>
+      <span class="text-xs font-bold text-emerald-700 uppercase">Live Broadcast Active</span>
+      <h2 class="text-lg font-bold text-slate-900 mt-0.5">Status Updated!</h2>
+      <p class="text-xs text-slate-500">Live synced across student, faculty, and administrator dashboards.</p>
+    </div>
+
+    <div class="w-full bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col gap-2.5 text-left text-xs">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+        <div>
+          <span class="font-bold text-slate-900">${r.id}</span>
+          <span class="block text-[11px] text-slate-500">${r.bldg} • ${r.type}</span>
+        </div>
+        ${getBadge(r.status)}
+      </div>
+      <div class="flex justify-between"><span class="text-slate-400">Current Time:</span><span>Today, 11:05 AM</span></div>
+      <div class="flex justify-between"><span class="text-slate-400">Updated By:</span><span class="font-semibold">${user.name}</span></div>
+      <div class="flex justify-between"><span class="text-slate-400">Audited In:</span><span class="text-emerald-700 font-medium">Status History Log</span></div>
+    </div>
+
+    <div class="flex flex-col w-full gap-2 pt-2">
+      <button onclick="navBottom('dashboard')" class="w-full py-2.5 bg-[#0f172a] text-white rounded-xl text-xs font-bold shadow">
+        Return to Dashboard
+      </button>
+      <button onclick="navTo('status-history')" class="w-full py-2 bg-slate-100 text-slate-800 rounded-xl text-xs font-semibold">
+        View in Status History
+      </button>
+      <button onclick="navTo('screen-scan-qr')" class="w-full py-1.5 text-xs text-slate-500 hover:text-slate-800">
+        Scan Another Room Plaque
+      </button>
+    </div>
+  </div>
+  `;
+}
+
+/* ============================================================
+   SCREEN 11: FACULTY DASHBOARD
+   ============================================================ */
+function viewFacultyHome() {
+  const user = getCurrentUser();
+  return `
+  ${appHeader('SpotFree Faculty', 'Campus Room Control', false)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-4">
+    
+    <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Faculty Portal</span>
+        <h2 class="text-base font-bold">${user.name}</h2>
+        <p class="text-xs text-slate-300">Heritage Institute of Technology • Dept of IT</p>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-emerald-400">
+        <span class="material-symbols-outlined text-xl">badge</span>
+      </div>
+    </div>
+
+    <!-- Faculty Actions Grid -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3">
+      <div>
+        <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-emerald-600 text-base">sync_saved_locally</span>
+          Quick Room Actions
+        </h3>
+        <p class="text-xs text-slate-500 mt-0.5">Directly update classroom door plaque status or review faculty audit history.</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="navTo('screen-scan-qr')" class="p-3 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl flex flex-col items-center justify-center gap-1 shadow active:scale-95 transition-all">
+          <span class="material-symbols-outlined text-2xl text-emerald-400">qr_code_scanner</span>
+          <span class="text-xs font-bold">Scan Room QR</span>
+          <span class="text-[10px] text-slate-300">Classroom Plaque</span>
+        </button>
+
+        <button onclick="navTo('screen-enter-room')" class="p-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl flex flex-col items-center justify-center gap-1 border border-slate-300 active:scale-95 transition-all">
+          <span class="material-symbols-outlined text-2xl text-slate-700">pin</span>
+          <span class="text-xs font-bold">Enter Room No.</span>
+          <span class="text-[10px] text-slate-500">e.g. CME-104</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button onclick="navTo('status-history')" class="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800">
+          <span class="material-symbols-outlined text-purple-600 text-base">history</span>
+          <span>Status History</span>
+        </button>
+        <button onclick="navTo('rooms-availability')" class="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800">
+          <span class="material-symbols-outlined text-emerald-600 text-base">meeting_room</span>
+          <span>Availability</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Room Toggle Shortcuts -->
+    <div class="flex flex-col gap-1.5">
+      <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Quick Room Toggle</span>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="openUpdateStatusDirect('CME-104')" class="p-3 bg-white rounded-xl border border-slate-200 text-left flex flex-col gap-1 hover:border-emerald-500">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-xs">CME-104</span>
+            <span class="text-[10px] font-bold text-emerald-700">${DB.rooms.find(r=>r.id==='CME-104').status}</span>
+          </div>
+          <span class="text-[10px] text-slate-400">Floor 1 • Classroom</span>
+          <span class="text-[10px] font-semibold text-emerald-600">Click to update ➜</span>
+        </button>
+        <button onclick="openUpdateStatusDirect('CME-102')" class="p-3 bg-white rounded-xl border border-slate-200 text-left flex flex-col gap-1 hover:border-emerald-500">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-xs">CME-102</span>
+            <span class="text-[10px] font-bold text-rose-700">${DB.rooms.find(r=>r.id==='CME-102').status}</span>
+          </div>
+          <span class="text-[10px] text-slate-400">Floor 1 • Classroom</span>
+          <span class="text-[10px] font-semibold text-emerald-600">Click to update ➜</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Recent History Activity -->
+    <div class="flex flex-col gap-1.5">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Recent Status Log</span>
+        <button onclick="navTo('status-history')" class="text-xs font-bold text-emerald-700 hover:underline">View All</button>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
+        ${DB.history.slice(0, 3).map(h => `
+          <div class="p-2.5 flex items-center justify-between text-xs">
+            <div>
+              <span class="font-bold text-slate-900">${h.room}</span>
+              <span class="text-slate-500 text-[11px]"> ➔ <b class="${h.to === 'VACANT' || h.to === 'FREE' ? 'text-emerald-700' : h.to === 'OCCUPIED' ? 'text-rose-700' : 'text-amber-700'}">${h.to}</b></span>
+            </div>
+            <span class="text-[10px] text-slate-400">${h.time}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+  </div>
+  `;
+}
+
+/* ============================================================
+   SCREEN 12: ADMIN DASHBOARD
+   ============================================================ */
+function viewAdminHome() {
+  const tot = DB.rooms.length;
+  const vacant = DB.rooms.filter(r => r.status === 'VACANT' || r.status === 'FREE').length;
+  const occ = DB.rooms.filter(r => r.status === 'OCCUPIED').length;
+  const res = DB.rooms.filter(r => r.status === 'RESERVED').length;
+  const user = getCurrentUser();
+
+  const bldgStats = ['CME', 'CB', 'ICT'].map(bldg => {
+    const list = DB.rooms.filter(r => r.bldg === bldg);
+    const vac = list.filter(r => r.status === 'VACANT' || r.status === 'FREE').length;
+    return { bldg, count: list.length, vac };
+  });
+
+  return `
+  ${appHeader('SpotFree Admin', 'Campus Facility Control', false)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-4">
+    
+    <div class="bg-[#0f172a] text-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-1.5">
+          <span class="bg-emerald-500 text-slate-950 text-[10px] font-extrabold px-1.5 py-0.5 rounded">ADMIN</span>
+          <span class="text-xs text-slate-300">${user.name}</span>
+        </div>
+        <h2 class="text-base font-bold mt-1">Campus Space Metrics</h2>
+        <p class="text-xs text-slate-300">Synchronized Real-time Status Breakdown</p>
+      </div>
+      <div class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-emerald-400">
+        <span class="material-symbols-outlined text-xl">shield_person</span>
+      </div>
+    </div>
+
+    <!-- Live Breakdown Cards -->
+    <div class="grid grid-cols-4 gap-1.5 text-center">
+      <div class="bg-white p-2 rounded-xl border border-slate-200">
+        <span class="text-[10px] font-bold text-slate-400 uppercase block">Total</span>
+        <span class="text-sm font-bold text-slate-900">${tot}</span>
+        <span class="text-[9px] text-slate-400 block">Rooms</span>
+      </div>
+      <div class="bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+        <span class="text-[10px] font-bold text-emerald-700 uppercase block">Vacant</span>
+        <span class="text-sm font-bold text-emerald-800">${vacant}</span>
+        <span class="text-[9px] text-emerald-600 block">Available</span>
+      </div>
+      <div class="bg-rose-50 p-2 rounded-xl border border-rose-200">
+        <span class="text-[10px] font-bold text-rose-700 uppercase block">Occupied</span>
+        <span class="text-sm font-bold text-rose-800">${occ}</span>
+        <span class="text-[9px] text-rose-600 block">In Use</span>
+      </div>
+      <div class="bg-amber-50 p-2 rounded-xl border border-amber-200">
+        <span class="text-[10px] font-bold text-amber-700 uppercase block">Reserved</span>
+        <span class="text-sm font-bold text-amber-800">${res}</span>
+        <span class="text-[9px] text-amber-600 block">Scheduled</span>
+      </div>
+    </div>
+
+    <!-- Building Occupancy Breakdown -->
+    <div class="flex flex-col gap-1.5">
+      <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Building Occupancy</span>
+      <div class="grid grid-cols-3 gap-2">
+        ${bldgStats.map(s => `
+          <div onclick="DB.activeFilterBldg='${s.bldg}'; navTo('rooms-availability');" class="p-2.5 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-emerald-500 shadow-sm">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-xs">${s.bldg}</span>
+              <span class="w-2 h-2 rounded-full ${s.vac > 0 ? 'bg-emerald-500' : 'bg-rose-500'}"></span>
+            </div>
+            <span class="text-xs font-bold text-slate-900 mt-1 block">${s.count} Rooms</span>
+            <span class="text-[10px] text-emerald-700">${s.vac} Vacant</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Quick Action Cards -->
+    <div class="flex flex-col gap-1.5">
+      <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Administration Actions</span>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="navTo('admin-manage-rooms')" class="p-3 bg-white rounded-xl border border-slate-200 flex flex-col items-center gap-1 shadow-sm hover:border-[#0f172a] text-center">
+          <span class="material-symbols-outlined text-emerald-600 text-2xl">settings_input_component</span>
+          <span class="text-xs font-bold text-slate-900">Manage Rooms</span>
+          <span class="text-[10px] text-slate-400">Edit, add & configure</span>
+        </button>
+        <button onclick="navTo('status-history')" class="p-3 bg-white rounded-xl border border-slate-200 flex flex-col items-center gap-1 shadow-sm hover:border-[#0f172a] text-center">
+          <span class="material-symbols-outlined text-purple-600 text-2xl">history</span>
+          <span class="text-xs font-bold text-slate-900">Status History</span>
+          <span class="text-[10px] text-slate-400">${DB.history.length} audit events</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+  `;
+}
+
+/* ============================================================
+   SCREEN 13: STATUS HISTORY AUDIT LOG
+   ============================================================ */
+function viewStatusHistory() {
+  const filtered = DB.history.filter(h => {
+    if (DB.historyFilterBldg === 'All') return true;
+    return h.room.startsWith(DB.historyFilterBldg);
+  });
+
+  return `
+  ${appHeader('Status History', 'Campus Audit Log (Screen 13)', true)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-3">
+    
+    <!-- Building Filter -->
+    <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+      ${['All', 'CME', 'CB', 'ICT'].map(b => `
+        <button onclick="DB.historyFilterBldg = '${b}'; render();" class="px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${DB.historyFilterBldg === b ? 'bg-[#0f172a] text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}">
+          ${b === 'All' ? 'All Logs' : b + ' Only'}
+        </button>
+      `).join('')}
+    </div>
+
+    <!-- History List -->
+    <div class="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 shadow-sm overflow-hidden">
+      ${filtered.length === 0 ? `
+        <div class="p-6 text-center text-slate-400 text-xs">No status change events found for this filter.</div>
+      ` : filtered.map(h => `
+        <div class="p-3 flex items-start justify-between text-xs gap-2">
+          <div class="flex items-start gap-2.5">
+            <span class="material-symbols-outlined text-slate-400 text-lg mt-0.5">history</span>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-slate-900">${h.room}</span>
+                <span class="text-[10px] text-slate-400">• ${h.by}</span>
+              </div>
+              <p class="text-slate-600 text-[11px] mt-0.5">
+                <span class="text-slate-400">${h.from}</span> ➔ 
+                <b class="${h.to === 'VACANT' || h.to === 'FREE' ? 'text-emerald-700' : h.to === 'OCCUPIED' ? 'text-rose-700' : 'text-amber-700'}">${h.to}</b>
+              </p>
+              ${h.note ? `<p class="text-[10px] text-slate-400 italic">${h.note}</p>` : ''}
+            </div>
+          </div>
+          <span class="text-[10px] text-slate-400 shrink-0 whitespace-nowrap">${h.time}</span>
+        </div>
+      `).join('')}
+    </div>
+
+  </div>
+  `;
+}
+
+/* ============================================================
+   SCREEN: ADMIN MANAGE ROOMS
+   ============================================================ */
+function viewAdminManageRooms() {
+  const filtered = DB.rooms.filter(r => {
+    if (DB.adminSearchQuery && !r.id.toLowerCase().includes(DB.adminSearchQuery.toLowerCase())) return false;
+    return true;
+  });
+
+  return `
+  ${appHeader('Manage Rooms', 'Screen: Room Catalog', true)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-3">
+    
+    <div class="flex justify-between items-center gap-2">
+      <div class="relative flex-1">
+        <span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-base">search</span>
+        <input type="text" oninput="DB.adminSearchQuery = this.value; render();" value="${DB.adminSearchQuery}" placeholder="Search room (e.g. CME-104)..." class="w-full text-xs pl-8 pr-2.5 py-1.5 rounded-lg border border-slate-200 bg-white">
+      </div>
+      <button onclick="openAddRoomModal()" class="px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow shrink-0">
+        <span class="material-symbols-outlined text-sm">add</span>
+        <span>Add Room</span>
+      </button>
+    </div>
+
+    <!-- Rooms List -->
+    <div class="flex flex-col gap-2">
+      ${filtered.map(r => `
+        <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-xs text-slate-900">${r.id}</span>
+              <span class="text-[10px] bg-slate-100 px-1 py-0.2 rounded text-slate-600">${r.bldg} • Fl ${r.floor}</span>
+              ${getBadge(r.status)}
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">${r.type} • ${r.capacity} seats</p>
+          </div>
+          <div class="flex gap-1.5">
+            <button onclick="openRoomDetails('${r.id}')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-xs font-semibold rounded">View</button>
+            <button onclick="openEditRoomModal('${r.id}')" class="px-2 py-1 bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-semibold rounded">Edit</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+  </div>
+  `;
+}
+
+function openAddRoomModal() {
+  const m = document.getElementById('modal-layer');
+  m.innerHTML = `
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-[340px] rounded-2xl p-4 shadow-2xl flex flex-col gap-2.5">
+      <h3 class="font-bold text-sm text-slate-900">Add New Campus Room</h3>
+      <div>
+        <label class="text-[10px] font-bold text-slate-600 uppercase">Room Designation</label>
+        <input id="modal-add-id" type="text" placeholder="e.g. CME-205" value="CME-205" class="w-full text-xs p-2 rounded border border-slate-200 uppercase font-bold">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[10px] font-bold text-slate-600 uppercase">Building</label>
+          <select id="modal-add-bldg" class="w-full text-xs p-2 rounded border border-slate-200"><option>CME</option><option>CB</option><option>ICT</option></select>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-slate-600 uppercase">Floor</label>
+          <input id="modal-add-fl" type="number" value="2" class="w-full text-xs p-2 rounded border border-slate-200">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[10px] font-bold text-slate-600 uppercase">Room Type</label>
+          <select id="modal-add-type" class="w-full text-xs p-2 rounded border border-slate-200">
+            <option>Classroom</option>
+            <option>Seminar Room</option>
+            <option>Meeting Room</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-slate-600 uppercase">Capacity</label>
+          <input id="modal-add-cap" type="number" value="60" class="w-full text-xs p-2 rounded border border-slate-200">
+        </div>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 text-xs font-bold rounded">Cancel</button>
+        <button onclick="saveNewRoomFromModal()" class="flex-1 py-2 bg-[#0f172a] text-white text-xs font-bold rounded">Save Room</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function saveNewRoomFromModal() {
+  const id = document.getElementById('modal-add-id').value.trim().toUpperCase() || 'CME-205';
+  const bldg = document.getElementById('modal-add-bldg').value;
+  const fl = parseInt(document.getElementById('modal-add-fl').value) || 2;
+  const tp = document.getElementById('modal-add-type').value;
+  const cap = parseInt(document.getElementById('modal-add-cap').value) || 60;
+
+  DB.rooms.unshift({
+    id, bldg, floor: fl, type: tp, capacity: cap,
+    status: 'VACANT',
+    timeText: 'Available now',
+    amenities: ['Air Conditioning', 'Whiteboard', 'Power Outlets'],
+    timeline: [{ time: 'All Day', text: 'Open Slot', status: 'Active Free' }]
+  });
+
+  closeModal();
+  showToast(`Room ${id} added to campus dataset`);
+  render();
+}
+
+function openEditRoomModal(roomId) {
+  const r = DB.rooms.find(rm => rm.id === roomId);
+  if (!r) return;
+  const m = document.getElementById('modal-layer');
+  m.innerHTML = `
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-[340px] rounded-2xl p-4 shadow-2xl flex flex-col gap-2.5">
+      <h3 class="font-bold text-sm text-slate-900">Edit Room: ${r.id}</h3>
+      <div>
+        <label class="text-[10px] font-bold text-slate-600 uppercase">Capacity</label>
+        <input id="modal-ed-cap" type="number" value="${r.capacity}" class="w-full text-xs p-2 rounded border border-slate-200">
+      </div>
+      <div>
+        <label class="text-[10px] font-bold text-slate-600 uppercase">Room Type</label>
+        <select id="modal-ed-type" class="w-full text-xs p-2 rounded border border-slate-200">
+          <option ${r.type==='Classroom'?'selected':''}>Classroom</option>
+          <option ${r.type==='Seminar Room'?'selected':''}>Seminar Room</option>
+          <option ${r.type==='Meeting Room'?'selected':''}>Meeting Room</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[10px] font-bold text-slate-600 uppercase">Status</label>
+        <select id="modal-ed-status" class="w-full text-xs p-2 rounded border border-slate-200">
+          <option value="VACANT" ${r.status==='VACANT'?'selected':''}>VACANT</option>
+          <option value="OCCUPIED" ${r.status==='OCCUPIED'?'selected':''}>OCCUPIED</option>
+          <option value="RESERVED" ${r.status==='RESERVED'?'selected':''}>RESERVED</option>
+        </select>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 text-xs font-bold rounded">Cancel</button>
+        <button onclick="applyRoomEdit('${r.id}')" class="flex-1 py-2 bg-emerald-600 text-white text-xs font-bold rounded">Save Changes</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function applyRoomEdit(roomId) {
+  const r = DB.rooms.find(rm => rm.id === roomId);
+  if (!r) return;
+  const newCap = parseInt(document.getElementById('modal-ed-cap').value) || r.capacity;
+  const newType = document.getElementById('modal-ed-type').value;
+  const newSt = document.getElementById('modal-ed-status').value;
+
+  r.capacity = newCap;
+  r.type = newType;
+  if (r.status !== newSt) {
+    updateRoomStatus(roomId, newSt, 'Updated via Admin Room Edit');
+  }
+  closeModal();
+  showToast(`Updated ${roomId}`);
+  render();
+}
+
+/* ============================================================
+   SCREEN 14: NOTIFICATIONS
+   ============================================================ */
+function viewNotifications() {
+  return `
+  ${appHeader('Notifications', 'Screen 14: Campus Alerts', true)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-3">
+    <div class="flex justify-between items-center text-xs">
+      <span class="font-bold text-slate-500 uppercase tracking-wider text-[11px]">Recent Updates</span>
+      <button onclick="DB.notifications.forEach(n => n.unread = false); showToast('All marked as read'); render();" class="text-emerald-700 font-semibold hover:underline">Mark all read</button>
+    </div>
+    <div class="flex flex-col gap-2">
+      ${DB.notifications.length === 0 ? `
+        <div class="p-6 text-center text-slate-400 text-xs">No notifications.</div>
+      ` : DB.notifications.map(n => `
+        <div class="p-3 rounded-xl border flex items-start gap-2.5 transition-colors ${n.unread ? 'bg-emerald-50/70 border-emerald-300' : 'bg-white border-slate-200'}">
+          <div class="w-7 h-7 rounded-full ${n.unread ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500'} flex items-center justify-center shrink-0 mt-0.5">
+            <span class="material-symbols-outlined text-sm">notifications</span>
+          </div>
+          <div class="flex-1">
+            <div class="flex justify-between items-center">
+              <h4 class="text-xs font-bold text-slate-900">${n.title}</h4>
+              <span class="text-[10px] text-slate-400">${n.time}</span>
+            </div>
+            <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">${n.desc}</p>
+            ${n.unread ? `
+              <button onclick="markNotificationSingleRead(${n.id})" class="text-[10px] font-bold text-emerald-700 hover:underline mt-1">Mark read</button>
+            ` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+  `;
+}
+
+function markNotificationSingleRead(id) {
+  const item = DB.notifications.find(n => n.id === id);
+  if (item) item.unread = false;
+  render();
+}
+
+/* ============================================================
+   SCREEN 15: PROFILE
+   ============================================================ */
+function viewProfile() {
+  const user = getCurrentUser();
+  return `
+  ${appHeader('Campus Profile', 'Screen 15: HIT Identity', true)}
+  <div class="flex flex-col px-4 pt-3 pb-8 gap-4">
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center text-center">
+      <div class="w-14 h-14 rounded-full bg-[#0f172a] text-emerald-400 flex items-center justify-center text-xl font-bold mb-2">
+        ${user.avatar}
+      </div>
+      <h2 class="text-sm font-bold text-slate-900">${user.name}</h2>
+      <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5">${user.roleLabel}</span>
+      <p class="text-xs text-slate-500 mt-1">${user.dept}</p>
+      <span class="text-[11px] font-mono text-emerald-700 font-semibold mt-0.5">ID: ${user.id}</span>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 text-xs">
+      <div class="p-3 flex justify-between"><span class="text-slate-500">Email:</span><span class="font-medium text-slate-800">${user.email}</span></div>
+      <div class="p-3 flex justify-between"><span class="text-slate-500">Campus Pass:</span><span class="text-emerald-700 font-bold">Validated HIT</span></div>
+      <div class="p-3 flex justify-between"><span class="text-slate-500">Authorized Zones:</span><span class="font-medium text-slate-800">CME, CB, ICT Buildings</span></div>
+    </div>
+
+    <button onclick="openLogoutModal()" class="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all">
+      <span class="material-symbols-outlined text-base">logout</span>
+      <span>Log Out of SpotFree</span>
+    </button>
+  </div>
+  `;
+}
+
+function openLogoutModal() {
+  const m = document.getElementById('modal-layer');
+  m.innerHTML = `
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-[320px] rounded-2xl p-5 shadow-2xl flex flex-col items-center text-center gap-3">
+      <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+        <span class="material-symbols-outlined text-2xl">logout</span>
+      </div>
+      <div>
+        <h3 class="font-bold text-sm text-slate-900">Confirm Log Out</h3>
+        <p class="text-xs text-slate-500 mt-1">Are you sure you want to end this SpotFree session?</p>
+      </div>
+      <div class="flex gap-2 w-full mt-1">
+        <button onclick="closeModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg">Cancel</button>
+        <button onclick="closeModal(); navTo('login', false); showToast('Logged out successfully');" class="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg shadow">Log Out</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function closeModal() {
+  document.getElementById('modal-layer').innerHTML = '';
+}
+
+/* ============================================================
+   MAIN RENDERER ROUTER
+   ============================================================ */
+function render() {
+  const container = document.getElementById('app');
+  const bottomNav = document.getElementById('bottom-nav');
+
+  // Control Bottom Nav visibility
+  if (DB.currentView === 'login') {
+    bottomNav.classList.add('hidden');
+  } else {
+    bottomNav.classList.remove('hidden');
+
+    // Update bottom nav highlighting
+    const isDash = DB.currentView === 'student-home' || DB.currentView === 'faculty-home' || DB.currentView === 'admin-home';
+    const isScan = DB.currentView === 'screen-scan-qr' || DB.currentView === 'screen-enter-room' || DB.currentView === 'screen-room-identified';
+    const isStatus = DB.currentView === 'rooms-availability' || DB.currentView === 'room-detail' || DB.currentView === 'status-history' || DB.currentView === 'wizard-req' || DB.currentView === 'wizard-res';
+    const isAdmin = DB.currentView === 'admin-manage-rooms' || (DB.currentRole === 'admin' && isDash);
+
+    document.getElementById('bnav-dashboard').className = isDash && !isAdmin ? 'flex flex-col items-center gap-0.5 py-1 px-3 text-emerald-600 font-bold text-[11px]' : 'flex flex-col items-center gap-0.5 py-1 px-3 text-slate-500 hover:text-slate-900 text-[11px]';
+    document.getElementById('bnav-scanner').className = isScan ? 'flex flex-col items-center gap-0.5 py-1 px-3 text-emerald-600 font-bold text-[11px]' : 'flex flex-col items-center gap-0.5 py-1 px-3 text-slate-500 hover:text-slate-900 text-[11px]';
+    document.getElementById('bnav-status').className = isStatus ? 'flex flex-col items-center gap-0.5 py-1 px-3 text-emerald-600 font-bold text-[11px]' : 'flex flex-col items-center gap-0.5 py-1 px-3 text-slate-500 hover:text-slate-900 text-[11px]';
+    document.getElementById('bnav-admin').className = (DB.currentRole === 'admin' || DB.currentView.startsWith('admin')) ? 'flex flex-col items-center gap-0.5 py-1 px-3 text-emerald-600 font-bold text-[11px]' : 'flex flex-col items-center gap-0.5 py-1 px-3 text-slate-500 hover:text-slate-900 text-[11px]';
+
+    // Label on third tab
+    const lbl = document.getElementById('bnav-status-label');
+    const ico = document.getElementById('bnav-status-icon');
+    if (DB.currentRole === 'admin' || DB.currentRole === 'faculty') {
+      lbl.textContent = 'History';
+      ico.textContent = 'history';
+    } else {
+      lbl.textContent = 'Availability';
+      ico.textContent = 'meeting_room';
+    }
+  }
+
+  // Update Top Role Switcher Pills
+  ['student', 'faculty', 'admin'].forEach(r => {
+    const el = document.getElementById('pill-' + r);
+    if (!el) return;
+    if (DB.currentRole === r && DB.currentView !== 'login') {
+      el.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-slate-950';
+    } else {
+      el.className = 'px-2 py-0.5 rounded text-[10px] font-medium text-slate-300 hover:text-white';
+    }
+  });
+
+  // View switch
+  switch (DB.currentView) {
+    case 'login': container.innerHTML = viewLogin(); break;
+    case 'student-home': container.innerHTML = viewStudentHome(); break;
+    case 'rooms-availability': container.innerHTML = viewRoomsAvailability(); break;
+    case 'room-detail': container.innerHTML = viewRoomDetail(); break;
+    case 'wizard-req': container.innerHTML = viewWizardReq(); break;
+    case 'wizard-res': container.innerHTML = viewWizardRes(); break;
+    case 'screen-scan-qr': container.innerHTML = viewScanQr(); break;
+    case 'screen-enter-room': container.innerHTML = viewEnterRoomNumber(); break;
+    case 'screen-room-identified': container.innerHTML = viewRoomIdentified(); break;
+    case 'screen-update-status': container.innerHTML = viewUpdateStatus(); break;
+    case 'screen-status-updated': container.innerHTML = viewStatusUpdated(); break;
+    case 'faculty-home': container.innerHTML = viewFacultyHome(); break;
+    case 'admin-home': container.innerHTML = viewAdminHome(); break;
+    case 'status-history': container.innerHTML = viewStatusHistory(); break;
+    case 'admin-manage-rooms': container.innerHTML = viewAdminManageRooms(); break;
+    case 'notifications': container.innerHTML = viewNotifications(); break;
+    case 'profile': container.innerHTML = viewProfile(); break;
+    default: container.innerHTML = viewLogin(); break;
+  }
+}
+
+// Boot prototype
+render();
+</script>
+</body></html>

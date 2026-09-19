@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "on-primary-fixed-variant": "#3f465c",
+        "on-tertiary-fixed-variant": "#264191",
+        "on-tertiary-fixed": "#00164e",
+        "inverse-primary": "#bec6e0",
+        "on-primary": "#ffffff",
+        "surface": "#f8f9ff",
+        "surface-container-highest": "#d3e4fe",
+        "on-tertiary-container": "#6780d3",
+        "secondary-fixed-dim": "#4edea3",
+        "secondary-container": "#6cf8bb",
+        "surface-variant": "#d3e4fe",
+        "surface-container-low": "#eff4ff",
+        "primary-fixed": "#dae2fd",
+        "surface-bright": "#f8f9ff",
+        "inverse-on-surface": "#eaf1ff",
+        "tertiary-fixed-dim": "#b6c4ff",
+        "error": "#ba1a1a",
+        "secondary-fixed": "#6ffbbe",
+        "on-tertiary": "#ffffff",
+        "on-secondary": "#ffffff",
+        "surface-container": "#e5eeff",
+        "inverse-surface": "#213145",
+        "error-container": "#ffdad6",
+        "on-error": "#ffffff",
+        "tertiary-fixed": "#dce1ff",
+        "on-surface": "#0b1c30",
+        "primary-fixed-dim": "#bec6e0",
+        "surface-dim": "#cbdbf5",
+        "primary": "#000000",
+        "outline": "#76777d",
+        "surface-container-high": "#dce9ff",
+        "on-primary-fixed": "#131b2e",
+        "surface-tint": "#565e74",
+        "on-secondary-container": "#00714d",
+        "on-primary-container": "#7c839b",
+        "on-secondary-fixed-variant": "#005236",
+        "background": "#f8f9ff",
+        "secondary": "#006c49",
+        "on-surface-variant": "#45464d",
+        "primary-container": "#131b2e",
+        "on-error-container": "#93000a",
+        "outline-variant": "#c6c6cd",
+        "on-background": "#0b1c30",
+        "surface-container-lowest": "#ffffff",
+        "tertiary": "#000000",
+        "on-secondary-fixed": "#002113",
+        "tertiary-container": "#00164e"
+      },
+      borderRadius: {
+        "DEFAULT": "0.25rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "full": "9999px"
+      },
+      spacing: {
+        "space-lg": "1.5rem",
+        "space-xl": "2rem",
+        "space-xs": "0.25rem",
+        "space-sm": "0.5rem",
+        "space-md": "1rem",
+        "gutter": "1rem",
+        "margin": "1rem"
+      },
+      fontFamily: {
+        "label-md": ["Inter"],
+        "body-md": ["Inter"],
+        "headline-md": ["Inter"],
+        "body-lg": ["Inter"],
+        "headline-lg": ["Inter"],
+        "label-sm": ["Inter"],
+        "headline-sm": ["Inter"],
+        "body-sm": ["Inter"],
+        "title-md": ["Inter"],
+        "title-sm": ["Inter"]
+      },
+      fontSize: {
+        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+        "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400"}],
+        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600"}],
+        "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "400"}],
+        "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+        "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500"}],
+        "headline-sm": ["20px", {"lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+        "body-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0.005em", "fontWeight": "400"}],
+        "title-md": ["17px", {"lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "600"}],
+        "title-sm": ["15px", {"lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "600"}]
+      }
+    }
+  }
+};</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="Brand logo. - Primary color: #0f172a
+- Font: inter
+- Mode: light
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1W6TSUjVkUa8I3G6DEooVqpLSE_RJ3BQLuoUueX65RKsH5mPp1l5WZNqdkUvgjCt0SJ90b-NrPuwY6rNFffx7kvk4a7p0JPdZbeZSA3hAfKp7jySp_B_nKjPmoHSS5nMsfjQ0-yp9YlDlVeEHSWTIM2qMFbO21R02VwVXtD9SilB4gEiss73yLvWKF8QCbpjrKSrFZwviT0rAWFfBn4W8-2gaCBXzeNBHXRbOHBK4CvAgeFYvdKAugovIXa"/><div class="flex flex-col"><span class="font-title-sm text-title-sm text-on-surface tracking-tight leading-none">SpotFree</span><span class="font-label-sm text-label-sm text-on-surface-variant font-medium mt-0.5">Admin Profile</span></div></div><div class="flex items-center gap-space-sm"><button aria-label="Search campus rooms" class="w-11 h-11 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[22px]">search</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-24 bg-surface"><div class="flex flex-col w-full px-gutter space-y-space-md pb-6">
+<!-- Top Bar Navigation Override / Context Bar -->
+<div class="flex items-center justify-between pt-2">
+<button aria-label="Go back" class="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container-lowest shadow-sm text-on-surface hover:bg-surface-container transition-colors" type="button">
+<span class="material-symbols-outlined text-[22px]">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-on-surface tracking-tight">Profile</h1>
+<div class="relative">
+<button aria-label="View notifications" class="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container-lowest shadow-sm text-on-surface hover:bg-surface-container transition-colors" type="button">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+</button>
+<span class="absolute top-2 right-2 w-2.5 h-2.5 bg-error rounded-full ring-2 ring-surface"></span>
+</div>
+</div>
+<!-- User Identity Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm relative overflow-hidden">
+<div class="flex items-start gap-space-md">
+<!-- Stylized Avatar Initial Circle (No Photos) -->
+<div class="relative flex-shrink-0">
+<div class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center text-primary-fixed font-headline-sm text-headline-sm font-semibold shadow-inner">
+          AS
+        </div>
+<div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-on-secondary-container text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<!-- Identity Details -->
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-2">
+<h2 class="font-title-md text-title-md text-on-surface truncate">Aarav Sharma</h2>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold uppercase tracking-wider">
+            Student
+          </span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant mt-0.5 tracking-normal">
+          HIT-2023-CS-0842
+        </p>
+<div class="flex items-center gap-1.5 mt-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] flex-shrink-0 text-outline">mail</span>
+<span class="font-body-sm text-body-sm truncate text-on-surface-variant">aarav.sharma@heritageit.edu.in</span>
+</div>
+</div>
+</div>
+<!-- Sub-status Bar -->
+<div class="mt-4 pt-3 flex items-center justify-between bg-surface-container-low px-3 py-2 rounded-lg">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-body-sm text-body-sm text-on-surface">Department of Computer Science</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Sem 4</span>
+</div>
+</div>
+<!-- Activity & Campus Metrics Bento -->
+<div class="grid grid-cols-3 gap-space-sm">
+<div class="bg-surface-container-lowest p-3 rounded-xl shadow-sm flex flex-col justify-between">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary mb-2">
+<span class="material-symbols-outlined text-[18px]">meeting_room</span>
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm text-on-surface font-semibold leading-tight">14</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-0.5 leading-snug">Rooms Checked</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded-xl shadow-sm flex flex-col justify-between">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary mb-2">
+<span class="material-symbols-outlined text-[18px]">update</span>
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm text-on-surface font-semibold leading-tight">6</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-0.5 leading-snug">Status Updates</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded-xl shadow-sm flex flex-col justify-between">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary mb-2">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm text-on-surface font-semibold leading-tight truncate">HIT</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-0.5 leading-snug truncate">Kolkata Campus</div>
+</div>
+</div>
+</div>
+<!-- Academic Utility Information -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="flex items-center justify-between mb-3">
+<span class="font-title-sm text-title-sm text-on-surface">Campus Activity Log</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Live Status</span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between p-2.5 rounded-lg bg-surface-container-low">
+<div class="flex items-center gap-2.5">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<div>
+<div class="font-title-sm text-title-sm text-on-surface">Study Hall B-204</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Marked Free • 24 mins ago</div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-secondary-container bg-secondary-container px-2 py-0.5 rounded-full font-medium">+5 Karma</span>
+</div>
+<div class="flex items-center justify-between p-2.5 rounded-lg bg-surface-container-low">
+<div class="flex items-center gap-2.5">
+<div class="w-2 h-2 rounded-full bg-outline"></div>
+<div>
+<div class="font-title-sm text-title-sm text-on-surface">Seminar Room 12</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Reported Occupied • 2h ago</div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-highest px-2 py-0.5 rounded-full font-medium">+5 Karma</span>
+</div>
+</div>
+</div>
+<!-- Settings & Options List -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden divide-y-0">
+<div class="px-space-md pt-3 pb-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Preferences</span>
+</div>
+<!-- Option 1: Edit Profile -->
+<button class="w-full h-14 px-space-md flex items-center justify-between hover:bg-surface-container-low transition-colors text-left group" type="button">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface group-hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</div>
+<div>
+<div class="font-title-sm text-title-sm text-on-surface">Edit Profile</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Update contact &amp; student details</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px]">chevron_right</span>
+</button>
+<!-- Option 2: Change Password -->
+<button class="w-full h-14 px-space-md flex items-center justify-between hover:bg-surface-container-low transition-colors text-left group" type="button">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface group-hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[20px]">lock_reset</span>
+</div>
+<div>
+<div class="font-title-sm text-title-sm text-on-surface">Change Password</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Manage university credentials</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px]">chevron_right</span>
+</button>
+<!-- Option 3: Help & Support -->
+<button class="w-full h-14 px-space-md flex items-center justify-between hover:bg-surface-container-low transition-colors text-left group" type="button">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface group-hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[20px]">support_agent</span>
+</div>
+<div>
+<div class="font-title-sm text-title-sm text-on-surface">Help &amp; Support</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">FAQ, campus guidelines &amp; tickets</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px]">chevron_right</span>
+</button>
+<!-- Option 4: Logout Button -->
+<button class="w-full h-14 px-space-md flex items-center justify-between hover:bg-error-container/40 transition-colors text-left group" id="open-logout-modal" type="button">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-error-container flex items-center justify-center text-error group-hover:bg-error group-hover:text-on-error transition-colors">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+</div>
+<div>
+<div class="font-title-sm text-title-sm text-error font-medium">Log Out</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Sign out of this campus device</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-error text-[20px]">chevron_right</span>
+</button>
+</div>
+<!-- App Info Subtitle -->
+<div class="text-center pt-1">
+<p class="font-label-sm text-label-sm text-on-surface-variant">SpotFree Campus Suite • v2.4.1 (Build 408)</p>
+</div>
+<!-- Interactive Confirmation Dialog / Modal Sheet -->
+<div class="fixed inset-0 z-50 bg-primary/40 backdrop-blur-sm flex items-end justify-center px-4 pb-6 transition-opacity duration-200" id="logout-modal-backdrop">
+<div class="bg-surface-container-lowest w-full max-w-sm rounded-xl p-space-md shadow-xl flex flex-col space-y-space-md transform transition-transform">
+<!-- Icon & Header -->
+<div class="flex items-start gap-3">
+<div class="w-12 h-12 rounded-xl bg-error-container flex items-center justify-center text-error flex-shrink-0">
+<span class="material-symbols-outlined text-[26px]">logout</span>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Log Out of SpotFree?</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+            Are you sure you want to log out? You will need your university credentials to sign back in.
+          </p>
+</div>
+</div>
+<!-- Action Button Group -->
+<div class="flex flex-col gap-2 pt-2">
+<button class="w-full h-12 rounded-lg bg-primary text-on-primary font-title-sm text-title-sm flex items-center justify-center hover:opacity-90 active:scale-[0.98] transition-all" id="confirm-logout-btn" type="button">
+          Log Out
+        </button>
+<button class="w-full h-12 rounded-lg bg-surface-container-low text-on-surface font-title-sm text-title-sm flex items-center justify-center hover:bg-surface-container active:scale-[0.98] transition-all" id="cancel-logout-btn" type="button">
+          Cancel
+        </button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const modalBackdrop = document.getElementById('logout-modal-backdrop');
+    const openBtn = document.getElementById('open-logout-modal');
+    const cancelBtn = document.getElementById('cancel-logout-btn');
+    const confirmBtn = document.getElementById('confirm-logout-btn');
+
+    function closeModal() {
+      modalBackdrop.classList.add('hidden');
+    }
+
+    function openModal() {
+      modalBackdrop.classList.remove('hidden');
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    if (modalBackdrop) {
+      modalBackdrop.addEventListener('click', (e) => {
+        if (e.target === modalBackdrop) closeModal();
+      });
+    }
+
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', () => {
+        confirmBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>';
+        setTimeout(() => {
+          closeModal();
+          confirmBtn.textContent = 'Log Out';
+        }, 600);
+      });
+    }
+  })();
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-1px_12px_rgba(0,0,0,0.04)]" data-active-classes="text-primary font-semibold"><div class="h-16 px-gutter flex items-center justify-around"><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] text-on-surface-variant transition-colors hover:text-on-surface" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[24px]">dashboard</span><span class="font-label-sm text-label-sm mt-0.5">Dashboard</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] text-on-surface-variant transition-colors hover:text-on-surface" data-path="room-scanner" href="#"><span class="material-symbols-outlined text-[24px]">qr_code_scanner</span><span class="font-label-sm text-label-sm mt-0.5">Scanner</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] text-on-surface-variant transition-colors hover:text-on-surface" data-path="occupancy-status" href="#"><span class="material-symbols-outlined text-[24px]">meeting_room</span><span class="font-label-sm text-label-sm mt-0.5">Status</span></a><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] transition-colors text-primary font-semibold" data-path="admin-profile" href="#"><span class="material-symbols-outlined text-[24px]">admin_panel_settings</span><span class="font-label-sm text-label-sm mt-0.5">Admin</span></a></div></nav></body></html>

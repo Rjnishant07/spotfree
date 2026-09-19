@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#f8f9ff;}body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-surface-variant": "#45464d", "secondary-fixed": "#6ffbbe", "primary-container": "#131b2e", "on-primary-fixed": "#131b2e", "tertiary-container": "#00164e", "secondary-container": "#6cf8bb", "outline": "#76777d", "on-secondary-container": "#00714d", "surface-container-highest": "#d3e4fe", "error-container": "#ffdad6", "surface-dim": "#cbdbf5", "outline-variant": "#c6c6cd", "primary-fixed": "#dae2fd", "tertiary-fixed-dim": "#b6c4ff", "surface-tint": "#565e74", "tertiary": "#000000", "on-secondary": "#ffffff", "background": "#f8f9ff", "on-background": "#0b1c30", "surface-variant": "#d3e4fe", "tertiary-fixed": "#dce1ff", "on-primary-fixed-variant": "#3f465c", "surface-container-low": "#eff4ff", "inverse-on-surface": "#eaf1ff", "on-tertiary-container": "#6780d3", "on-error": "#ffffff", "secondary-fixed-dim": "#4edea3", "surface": "#f8f9ff", "surface-container-high": "#dce9ff", "primary-fixed-dim": "#bec6e0", "secondary": "#006c49", "inverse-primary": "#bec6e0", "error": "#ba1a1a", "on-primary-container": "#7c839b", "on-surface": "#0b1c30", "surface-bright": "#f8f9ff", "primary": "#000000", "on-tertiary": "#ffffff", "on-error-container": "#93000a", "on-secondary-fixed-variant": "#005236", "on-tertiary-fixed": "#00164e", "surface-container": "#e5eeff", "on-secondary-fixed": "#002113", "surface-container-lowest": "#ffffff", "on-tertiary-fixed-variant": "#264191", "on-primary": "#ffffff", "inverse-surface": "#213145" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "space-xs": "0.25rem", "space-sm": "0.5rem", "space-md": "1rem", "gutter": "1rem", "space-xl": "2rem", "margin": "1rem", "space-lg": "1.5rem" }, fontFamily: { "title-sm": ["Inter"], "headline-md": ["Inter"], "label-md": ["Inter"], "body-lg": ["Inter"], "label-sm": ["Inter"], "headline-lg": ["Inter"], "headline-sm": ["Inter"], "title-md": ["Inter"], "body-md": ["Inter"], "body-sm": ["Inter"] }, fontSize: { "title-sm": ["15px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "600" }], "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "400" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }], "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-sm": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "title-md": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "600" }], "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }], "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0.005em", "fontWeight": "400" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] pt-safe"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-xs"><button aria-label="Go back" class="min-w-[44px] min-h-[44px] -ml-2 flex items-center justify-center text-on-surface hover:text-on-surface-variant transition-colors" onclick="history.back()" type="button"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><h1 class="font-title-md text-title-md text-on-surface truncate">Update Room Status</h1></div><div class="flex items-center"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 bg-surface pb-safe"><div class="flex flex-col w-full px-gutter pb-8 space-y-space-lg">
+<!-- Contextual Subheading & Real-time Notice -->
+<div class="flex items-center justify-between pt-2">
+<div>
+<p class="font-title-sm text-title-sm text-on-surface">Select room occupancy state</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Live updates broadcast immediately across campus monitors</p>
+</div>
+<span class="flex h-2.5 w-2.5 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary"></span>
+</span>
+</div>
+<!-- Room Header Summary Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="space-y-0.5">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">meeting_room</span>
+<span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">CME-104</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Classroom · Floor 1 · CME Building</p>
+</div>
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider font-semibold">Current: Vacant</span>
+</div>
+</div>
+<div class="mt-3 pt-3 bg-surface-container-low rounded-lg p-2.5 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">sensors</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">PIR Sensor: No motion detected (14m ago)</span>
+</div>
+<span class="font-label-sm text-label-sm font-medium text-on-surface">Auto-sync ON</span>
+</div>
+</div>
+<!-- Status Selection Form -->
+<div class="space-y-space-md">
+<div class="flex items-center justify-between">
+<h2 class="font-title-sm text-title-sm text-on-surface tracking-tight">Set New Status</h2>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Tap to select</span>
+</div>
+<!-- 3 Interactive Status Options -->
+<div aria-label="Room status" class="space-y-space-sm" id="status-group" role="radiogroup">
+<!-- 1. VACANT -->
+<label class="status-card relative flex items-center justify-between p-space-md rounded-xl bg-surface-container-lowest cursor-pointer transition-all shadow-sm active:scale-[0.99]">
+<input class="sr-only" name="room_status" type="radio" value="vacant"/>
+<div class="flex items-start gap-3.5 pr-2">
+<div class="w-10 h-10 rounded-xl bg-secondary-fixed flex items-center justify-center shrink-0 text-on-secondary-fixed-variant">
+<span class="material-symbols-outlined text-[22px]">meeting_room</span>
+</div>
+<div class="space-y-0.5">
+<div class="flex items-center gap-2">
+<span class="font-title-sm text-title-sm text-on-surface">Vacant</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed">Free</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Room is currently empty and available for immediate use</p>
+</div>
+</div>
+<div class="status-indicator w-6 h-6 rounded-full bg-surface-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px] text-surface-container hidden">check</span>
+</div>
+</label>
+<!-- 2. OCCUPIED (Default selected for demonstration) -->
+<label class="status-card selected relative flex items-center justify-between p-space-md rounded-xl bg-surface-container-high cursor-pointer transition-all shadow-sm active:scale-[0.99]">
+<input checked="" class="sr-only" name="room_status" type="radio" value="occupied"/>
+<div class="flex items-start gap-3.5 pr-2">
+<div class="w-10 h-10 rounded-xl bg-error-container flex items-center justify-center shrink-0 text-on-error-container">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">groups</span>
+</div>
+<div class="space-y-0.5">
+<div class="flex items-center gap-2">
+<span class="font-title-sm text-title-sm text-on-surface">Occupied</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-error-container text-on-error-container">Active</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Room is in active use for lecture, seminar, or group study</p>
+</div>
+</div>
+<div class="status-indicator w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px] text-on-primary">check</span>
+</div>
+</label>
+<!-- 3. RESERVED -->
+<label class="status-card relative flex items-center justify-between p-space-md rounded-xl bg-surface-container-lowest cursor-pointer transition-all shadow-sm active:scale-[0.99]">
+<input class="sr-only" name="room_status" type="radio" value="reserved"/>
+<div class="flex items-start gap-3.5 pr-2">
+<div class="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[22px]">event_seat</span>
+</div>
+<div class="space-y-0.5">
+<div class="flex items-center gap-2">
+<span class="font-title-sm text-title-sm text-on-surface">Reserved</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface">Holding</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Room is set aside for scheduled department session</p>
+</div>
+</div>
+<div class="status-indicator w-6 h-6 rounded-full bg-surface-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px] text-surface-container hidden">check</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Conditional "Active / Reserved Until" Duration Box -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-sm transition-all" id="duration-container">
+<div class="flex items-center justify-between">
+<label class="font-title-sm text-title-sm text-on-surface flex items-center gap-2" for="reserved-time">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">schedule</span>
+<span id="time-label-text">Expected Occupied Until</span>
+</label>
+<span class="font-label-sm text-label-sm font-semibold px-2 py-0.5 rounded bg-surface-container text-on-surface">EST</span>
+</div>
+<div class="relative">
+<select class="w-full h-12 pl-3.5 pr-10 rounded-lg bg-surface-container-low font-body-md text-body-md text-on-surface appearance-none focus:outline-none focus:bg-surface-container" id="reserved-time">
+<option value="12:00">12:00 PM (In 30 mins)</option>
+<option selected="" value="12:30">12:30 PM (In 1 hour)</option>
+<option value="13:00">1:00 PM (In 1 hr 30 mins)</option>
+<option value="13:30">1:30 PM (In 2 hours)</option>
+<option value="14:00">2:00 PM (In 2 hr 30 mins)</option>
+<option value="15:00">3:00 PM (In 3 hr 30 mins)</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-[20px]">expand_more</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Specify when this space will become vacant again for walk-ins.</p>
+</div>
+<!-- Optional Remarks / Note Field -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-xs">
+<label class="font-title-sm text-title-sm text-on-surface flex items-center justify-between" for="status-note">
+<span>Remarks</span>
+<span class="font-label-sm text-label-sm font-normal text-on-surface-variant">Optional</span>
+</label>
+<div class="relative">
+<input class="w-full h-12 px-3.5 rounded-lg bg-surface-container-low font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:bg-surface-container" id="status-note" maxlength="80" placeholder="e.g., Study session in progress or Faculty review" type="text" value="Midterm review group"/>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Visible on the CME-104 door display tablet</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant" id="char-count">21/80</span>
+</div>
+</div>
+<!-- Actions Section -->
+<div class="space-y-space-sm pt-2">
+<button class="w-full h-12 bg-primary text-on-primary font-title-sm text-title-sm font-semibold rounded-lg flex items-center justify-center gap-2 shadow-sm transition-transform active:scale-[0.98]" id="submit-btn" type="button">
+<span class="material-symbols-outlined text-[20px]">sync_saved_locally</span>
+<span>Update Status</span>
+</button>
+<button class="w-full h-11 bg-transparent text-on-surface-variant font-title-sm text-title-sm font-medium rounded-lg flex items-center justify-center hover:text-on-surface transition-colors" onclick="history.back()" type="button">
+      Cancel
+    </button>
+</div>
+</div>
+<script>
+  (function() {
+    const cards = document.querySelectorAll('.status-card');
+    const timeContainer = document.getElementById('duration-container');
+    const timeLabel = document.getElementById('time-label-text');
+    const noteInput = document.getElementById('status-note');
+    const charCount = document.getElementById('char-count');
+    const submitBtn = document.getElementById('submit-btn');
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        cards.forEach(c => {
+          c.classList.remove('selected', 'bg-surface-container-high');
+          c.classList.add('bg-surface-container-lowest');
+          const indicator = c.querySelector('.status-indicator');
+          indicator.classList.remove('bg-primary');
+          indicator.classList.add('bg-surface-container');
+          const check = indicator.querySelector('.material-symbols-outlined');
+          check.classList.add('hidden');
+          check.classList.remove('text-on-primary');
+        });
+
+        card.classList.add('selected', 'bg-surface-container-high');
+        card.classList.remove('bg-surface-container-lowest');
+        const activeRadio = card.querySelector('input[type="radio"]');
+        activeRadio.checked = true;
+
+        const activeIndicator = card.querySelector('.status-indicator');
+        activeIndicator.classList.remove('bg-surface-container');
+        activeIndicator.classList.add('bg-primary');
+        const activeCheck = activeIndicator.querySelector('.material-symbols-outlined');
+        activeCheck.classList.remove('hidden');
+        activeCheck.classList.add('text-on-primary');
+
+        // Dynamic context changes based on selected status
+        const val = activeRadio.value;
+        if (val === 'vacant') {
+          timeContainer.classList.add('opacity-40', 'pointer-events-none');
+          timeLabel.textContent = 'Vacant Indefinitely';
+        } else {
+          timeContainer.classList.remove('opacity-40', 'pointer-events-none');
+          timeLabel.textContent = val === 'occupied' ? 'Expected Occupied Until' : 'Reserved Until';
+        }
+      });
+    });
+
+    if (noteInput && charCount) {
+      noteInput.addEventListener('input', (e) => {
+        charCount.textContent = `${e.target.value.length}/80`;
+      });
+    }
+
+    if (submitBtn) {
+      submitBtn.addEventListener('click', () => {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">progress_activity</span><span>Broadcasting...</span>';
+        setTimeout(() => {
+          // Micro-interaction delight: simulated success state
+          submitBtn.classList.remove('bg-primary');
+          submitBtn.classList.add('bg-secondary');
+          submitBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">check_circle</span><span>Room Updated</span>';
+        }, 600);
+      });
+    }
+  })();
+</script></main></body></html>
