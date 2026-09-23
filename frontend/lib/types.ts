@@ -53,6 +53,9 @@ export interface TimetableEntry {
   room: string;
   group: 'All' | 'Group 1' | 'Group 2';
   faculty: string;
+  facultyInitials?: string;
+  ta?: string;
+  type?: 'Lecture' | 'Lab' | 'Mentoring' | 'Remedial' | 'Library' | 'Break';
 }
 
 export interface StatusHistoryItem {

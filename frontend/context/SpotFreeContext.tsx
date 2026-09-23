@@ -1366,39 +1366,8 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
     });
   }, [currentTime, parseTimeToMinutes]);
 
-  // Timetable → Room Occupancy Calculation Engine
-  useEffect(() => {
-    // Determine active classes for current simulated Day, Hour, and Selected Group
-    const activeSlots = timetable.filter(slot => {
-      const dayMatches = slot.day === simulatedDay;
-      const timeMatches = simulatedHour >= slot.startHour && simulatedHour < slot.endHour;
-      const groupMatches = slot.group === 'All' || slot.group === selectedGroup;
-      return dayMatches && timeMatches && groupMatches;
-    });
+  // Timetable display is kept strictly separate from the room-status system as per requirements.
 
-    if (activeSlots.length > 0) {
-      setRooms(prev => {
-        return prev.map(room => {
-          // Normalize room ID check, e.g. "CME-604" matches "CME604" or "CME-604"
-          const matchingSlot = activeSlots.find(s => {
-            const sRoomClean = s.room.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-            const rIdClean = room.id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-            return sRoomClean === rIdClean;
-          });
-
-          // Keep active reservations intact so timetable doesn't overwrite user bookings
-          if (matchingSlot && room.status !== 'RESERVED') {
-            return {
-              ...room,
-              status: 'OCCUPIED',
-              timeText: `Occupied: ${matchingSlot.subjectName} until ${matchingSlot.endTime}`,
-            };
-          }
-          return room;
-        });
-      });
-    }
-  }, [simulatedDay, simulatedHour, selectedGroup, timetable]);
 
   // Add Room
   const addRoom = useCallback((newRoom: {
