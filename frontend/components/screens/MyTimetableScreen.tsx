@@ -11,6 +11,7 @@ const PDF_URL = `/${encodeURIComponent(PDF_FILE_NAME)}`;
 
 export const MyTimetableScreen: React.FC = () => {
   const {
+    currentRole,
     timetable,
     selectedGroup,
     setSelectedGroup,
@@ -20,11 +21,19 @@ export const MyTimetableScreen: React.FC = () => {
   } = useSpotFree();
   const { effectiveView } = useUIPrefs();
   const isWeb = effectiveView === 'web';
+  const role = (currentRole || 'student').toLowerCase();
 
-  // --- PDF Viewer State ---
-  const [pdfPage, setPdfPage] = useState<number>(1);
-  const [pdfZoom, setPdfZoom] = useState<number>(100);
-  const [isPdfExpanded, setIsPdfExpanded] = useState<boolean>(false);
+  // Faculty should not have access to My Timetable; redirect to faculty dashboard
+  useEffect(() => {
+    if (role === 'faculty') {
+      navigate('faculty-dashboard');
+    }
+  }, [role, navigate]);
+
+  if (role === 'faculty') {
+    return null;
+  }
+
 
   // --- Real-time Clock (Browser actual date & time) ---
   const [now, setNow] = useState<Date>(() => new Date());
@@ -111,30 +120,6 @@ export const MyTimetableScreen: React.FC = () => {
     setSelectedDate(nextDate);
   };
 
-  // PDF Page controls
-  const handlePrevPage = () => {
-    setPdfPage((prev) => Math.max(1, prev - 1));
-  };
-
-  const handleNextPage = () => {
-    setPdfPage((prev) => Math.min(3, prev + 1));
-  };
-
-  const handleZoomIn = () => {
-    setPdfZoom((prev) => Math.min(200, prev + 25));
-  };
-
-  const handleZoomOut = () => {
-    setPdfZoom((prev) => Math.max(50, prev - 25));
-  };
-
-  const handleFitToScreen = () => {
-    setPdfZoom(100);
-  };
-
-  const handleOpenNewTab = () => {
-    window.open(`${PDF_URL}#page=${pdfPage}`, '_blank', 'noopener,noreferrer');
-  };
 
   // Filter daily timetable slots
   const activeDaySlots = useMemo(() => {
@@ -213,187 +198,33 @@ export const MyTimetableScreen: React.FC = () => {
         }
       >
         {/* ============================================================== */}
-        {/* SECTION 1: OFFICIAL TIMETABLE PDF VIEWER                       */}
+        {/* SECTION 1: OPEN TIMETABLE PDF BUTTON                           */}
         {/* ============================================================== */}
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          {/* PDF Viewer Title Bar */}
-          <div className="p-3.5 sm:p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5 bg-slate-50/70">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-xl">picture_as_pdf</span>
-              </div>
-              <div className="min-w-0 flex flex-col">
-                <h2 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
-                  {PDF_FILE_NAME}
-                </h2>
-                <p className="text-[11px] text-slate-500 truncate">
-                  Official Academic Routine · 3 Pages · Effective from 20.07.2026
-                </p>
-              </div>
+        <section className="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-2xl">picture_as_pdf</span>
             </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleOpenNewTab}
-                className="h-8 px-2.5 sm:px-3 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 active:scale-95 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
-                title="Open PDF in a new tab"
-                aria-label="Open PDF in a new tab"
-              >
-                <span className="material-symbols-outlined text-sm text-slate-600">open_in_new</span>
-                <span className="hidden sm:inline">Open in New Tab</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsPdfExpanded(!isPdfExpanded)}
-                className="h-8 px-2.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 active:scale-95 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-all shadow-2xs cursor-pointer"
-                title={isPdfExpanded ? 'Normal view' : 'Fit to screen / Expand'}
-                aria-label={isPdfExpanded ? 'Normal view' : 'Fit to screen / Expand'}
-              >
-                <span className="material-symbols-outlined text-base">
-                  {isPdfExpanded ? 'fullscreen_exit' : 'fit_screen'}
-                </span>
-                <span className="hidden sm:inline">{isPdfExpanded ? 'Collapse' : 'Expand'}</span>
-              </button>
+            <div className="min-w-0 flex flex-col">
+              <span className="font-bold text-xs sm:text-sm text-slate-900 truncate">
+                {PDF_FILE_NAME}
+              </span>
+              <span className="text-[11px] text-slate-500 truncate">
+                Official Academic Routine · B.Tech CSE (DS) 2nd Year 1st Sem
+              </span>
             </div>
           </div>
 
-          {/* PDF Viewer Controls Toolbar */}
-          <div className="px-3 sm:px-4 py-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs bg-white">
-            {/* Page Navigation Controls */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1 hidden sm:inline">
-                Page:
-              </span>
-              <button
-                type="button"
-                onClick={handlePrevPage}
-                disabled={pdfPage <= 1}
-                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center transition-colors cursor-pointer"
-                title="Previous Page"
-                aria-label="Previous Page"
-              >
-                <span className="material-symbols-outlined text-base">chevron_left</span>
-              </button>
-              <span className="font-bold text-slate-800 text-xs px-1 min-w-[68px] text-center">
-                {pdfPage} of 3
-              </span>
-              <button
-                type="button"
-                onClick={handleNextPage}
-                disabled={pdfPage >= 3}
-                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center transition-colors cursor-pointer"
-                title="Next Page"
-                aria-label="Next Page"
-              >
-                <span className="material-symbols-outlined text-base">chevron_right</span>
-              </button>
-            </div>
-
-            {/* Quick Page Jump Pills */}
-            <div className="hidden md:flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setPdfPage(1)}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
-                  pdfPage === 1
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                P1: Schedule Grid
-              </button>
-              <button
-                type="button"
-                onClick={() => setPdfPage(2)}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
-                  pdfPage === 2
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                P2: Faculty Directory
-              </button>
-              <button
-                type="button"
-                onClick={() => setPdfPage(3)}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
-                  pdfPage === 3
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                P3: Course Structure
-              </button>
-            </div>
-
-            {/* Zoom Controls */}
-            <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1 hidden sm:inline">
-                Zoom:
-              </span>
-              <button
-                type="button"
-                onClick={handleZoomOut}
-                disabled={pdfZoom <= 50}
-                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center transition-colors cursor-pointer"
-                title="Zoom Out"
-                aria-label="Zoom Out"
-              >
-                <span className="material-symbols-outlined text-base">zoom_out</span>
-              </button>
-              <span className="font-mono font-bold text-slate-800 text-xs min-w-[42px] text-center">
-                {pdfZoom}%
-              </span>
-              <button
-                type="button"
-                onClick={handleZoomIn}
-                disabled={pdfZoom >= 200}
-                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center transition-colors cursor-pointer"
-                title="Zoom In"
-                aria-label="Zoom In"
-              >
-                <span className="material-symbols-outlined text-base">zoom_in</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleFitToScreen}
-                className="h-7 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition-colors cursor-pointer ml-1"
-                title="Fit to Screen (100%)"
-              >
-                Fit
-              </button>
-            </div>
-          </div>
-
-          {/* PDF Viewer Frame */}
-          <div
-            className={`w-full bg-slate-100 transition-all relative ${
-              isPdfExpanded ? 'h-[750px]' : isWeb ? 'h-[500px]' : 'h-[380px]'
-            }`}
+          <a
+            href={PDF_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-10 px-4 rounded-xl bg-[#0f172a] hover:bg-slate-800 active:scale-95 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs shrink-0 cursor-pointer"
+            title="Open Timetable PDF in a new browser tab"
           >
-            <iframe
-              key={`pdf-viewer-p${pdfPage}-z${pdfZoom}`}
-              src={`${PDF_URL}#page=${pdfPage}&zoom=${pdfZoom}`}
-              className="w-full h-full border-0"
-              title="Official B.Tech CSE(DS) 2nd Year 1st Sem Routine PDF"
-            />
-          </div>
-
-          {/* Quick PDF Notice / Direct Link */}
-          <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span className="truncate">Source: HIT Registrar & CSE(DS) Academic Committee</span>
-            <a
-              href={PDF_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-emerald-700 font-bold hover:underline shrink-0 flex items-center gap-1"
-            >
-              <span>Download PDF</span>
-              <span className="material-symbols-outlined text-xs">download</span>
-            </a>
-          </div>
+            <span>Open Timetable PDF</span>
+            <span className="material-symbols-outlined text-sm">open_in_new</span>
+          </a>
         </section>
 
         {/* ============================================================== */}
@@ -750,7 +581,7 @@ export const MyTimetableScreen: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={() => navigate('student-dashboard')}
+            onClick={() => navigate(role === 'admin' ? 'admin-dashboard' : 'student-dashboard')}
             className="w-full sm:w-auto px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition-all cursor-pointer"
           >
             Back to Dashboard

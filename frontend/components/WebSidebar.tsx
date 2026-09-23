@@ -44,7 +44,7 @@ export const WebSidebar: React.FC = () => {
       view: 'best-room-req',
       match: ['best-room-req', 'recommended-room'],
     },
-    ...(role !== 'admin'
+    ...(role === 'student'
       ? ([
           {
             key: 'timetable',
