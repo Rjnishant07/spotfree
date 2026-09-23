@@ -44,13 +44,17 @@ export const WebSidebar: React.FC = () => {
       view: 'best-room-req',
       match: ['best-room-req', 'recommended-room'],
     },
-    {
-      key: 'timetable',
-      label: 'My Timetable',
-      icon: 'calendar_month',
-      view: 'my-timetable',
-      match: ['my-timetable'],
-    },
+    ...(role !== 'admin'
+      ? ([
+          {
+            key: 'timetable',
+            label: 'My Timetable',
+            icon: 'calendar_month',
+            view: 'my-timetable',
+            match: ['my-timetable'],
+          },
+        ] as NavItem[])
+      : []),
     {
       key: 'scanner',
       label: 'Scan / Update Room',
