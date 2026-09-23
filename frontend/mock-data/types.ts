@@ -29,11 +29,11 @@ export interface RoomTimelineSlot {
   status: 'Ended' | 'Active' | 'Upcoming';
 }
 
-export type AuthorityLevel = 'STUDENT' | 'FACULTY' | 'ADMIN';
+export type AuthorityLevel = 'STUDENT' | 'FACULTY' | 'ADMIN' | 'TIMETABLE';
 
 export interface Room {
-  id: string;            // e.g. 'CME604', 'CB501', 'ICT403', 'ICT B08', 'CME B07'
-  roomNumber: string;    // e.g. '604', '501', '403', 'B08', 'B07'
+  id: string;            // e.g. 'CME604', 'CB501', 'ICT403', 'ICT B08', 'CME B07', 'CB601', 'LIBRARY'
+  roomNumber: string;    // e.g. '604', '501', '403', 'B08', 'B07', '601', 'LIBRARY'
   building: CampusBuilding;
   floor: number;         // -1 for Basement, 0 for Ground, 1 for 1st, etc.
   type: RoomType;        // ONLY: 'CLASSROOM' | 'LABS' | 'SEMINAR HALL' | 'OFFICES'
@@ -51,6 +51,9 @@ export interface Room {
   amenities: string[];
   timeText: string;
   timeline: RoomTimelineSlot[];
+  isTimetableControlled?: boolean;
+  currentClass?: any;
+  upcomingClass?: any;
 }
 
 export interface StatusHistoryEntry {

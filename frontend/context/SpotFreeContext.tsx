@@ -11,6 +11,7 @@ import {
   StudentGroup,
   Room,
   TimetableEntry,
+  TimetableClassInfo,
   StatusHistoryItem,
   NotificationItem,
   UserProfile,
@@ -169,20 +170,318 @@ interface SpotFreeContextType {
 }
 
 /**
+ * Protected QR-controlled demonstration rooms in "Quick Department Spaces".
+ * MUST REMAIN 100% UNTOUCHED by automatic timetable occupancy.
+ */
+export const PROTECTED_QR_ROOMS = ['CME604', 'CME605', 'CB501', 'ICT403', 'ICT B08'] as const;
+
+export function isProtectedQrRoom(roomId?: string): boolean {
+  if (!roomId) return false;
+  const clean = roomId.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  return ['CME604', 'CME605', 'CB501', 'ICT403', 'ICTB08'].includes(clean);
+}
+
+/**
  * Normalizes user role string to hierarchy AuthorityLevel:
- * ADMIN > FACULTY > STUDENT
+ * ADMIN > FACULTY > TIMETABLE > STUDENT
  */
 export function normalizeRoleToAuthority(role?: string): AuthorityLevel {
   const r = (role || '').toUpperCase();
   if (r.includes('ADMIN')) return 'ADMIN';
   if (r.includes('FACULTY') || r.includes('TEACHER')) return 'FACULTY';
+  if (r.includes('TIMETABLE')) return 'TIMETABLE';
   return 'STUDENT';
+}
+
+/**
+ * Real-time Timetable Occupancy Engine for timetable-controlled rooms.
+ * Strictly ignores the 5 protected QR rooms.
+ * Uses real browser/device date & time to calculate live status.
+ */
+export function computeTimetableRoomState(
+  room: Room,
+  now: Date,
+  timetableEntries: TimetableEntry[]
+): Room {
+  if (isProtectedQrRoom(room.id) || !room.isTimetableControlled) {
+    return room;
+  }
+
+  const cleanRoomId = room.id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  const roomClasses = timetableEntries.filter(
+    (c) => c.room.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanRoomId
+  );
+
+  const dayOfWeek = now.getDay(); // 0 = Sun, 1 = Mon, ..., 5 = Fri, 6 = Sat
+  const weekdayCodes: ('Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri')[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+  const todayCode = isWeekday ? weekdayCodes[dayOfWeek - 1] : null;
+
+  const nowHours = now.getHours();
+  const nowMinutes = now.getMinutes();
+  const nowDecimal = nowHours + nowMinutes / 60;
+
+  const weekDayOrder: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5 };
+
+  // Helper to find next upcoming class across future days
+  const findNextUpcomingClass = (): TimetableClassInfo | null => {
+    if (roomClasses.length === 0) return null;
+    const currentDayVal = isWeekday ? dayOfWeek : (dayOfWeek === 0 ? 0 : 6);
+
+    const sorted = [...roomClasses].sort((a, b) => {
+      const dayDiff = weekDayOrder[a.day] - weekDayOrder[b.day];
+      if (dayDiff !== 0) return dayDiff;
+      return a.startHour - b.startHour;
+    });
+
+    // 1. Check later today
+    if (todayCode) {
+      const laterToday = sorted.find((c) => c.day === todayCode && c.startHour > nowDecimal);
+      if (laterToday) {
+        return {
+          subjectCode: laterToday.subjectCode,
+          subjectName: laterToday.subjectName,
+          faculty: laterToday.faculty,
+          facultyInitials: laterToday.facultyInitials,
+          startTime: laterToday.startTime,
+          endTime: laterToday.endTime,
+          day: laterToday.day,
+          group: laterToday.group,
+          type: laterToday.type || 'Lecture',
+          room: room.id,
+        };
+      }
+    }
+
+    // 2. Check subsequent weekdays
+    const laterInWeek = sorted.find((c) => weekDayOrder[c.day] > currentDayVal);
+    if (laterInWeek) {
+      return {
+        subjectCode: laterInWeek.subjectCode,
+        subjectName: laterInWeek.subjectName,
+        faculty: laterInWeek.faculty,
+        facultyInitials: laterInWeek.facultyInitials,
+        startTime: laterInWeek.startTime,
+        endTime: laterInWeek.endTime,
+        day: laterInWeek.day,
+        group: laterInWeek.group,
+        type: laterInWeek.type || 'Lecture',
+        room: room.id,
+      };
+    }
+
+    // 3. Wrap around to first class in next week
+    if (sorted.length > 0) {
+      const firstInWeek = sorted[0];
+      return {
+        subjectCode: firstInWeek.subjectCode,
+        subjectName: firstInWeek.subjectName,
+        faculty: firstInWeek.faculty,
+        facultyInitials: firstInWeek.facultyInitials,
+        startTime: firstInWeek.startTime,
+        endTime: firstInWeek.endTime,
+        day: firstInWeek.day,
+        group: firstInWeek.group,
+        type: firstInWeek.type || 'Lecture',
+        room: room.id,
+      };
+    }
+    return null;
+  };
+
+  const upcomingClass = findNextUpcomingClass();
+
+  // Weekend Rule -> VACANT
+  if (!isWeekday || !todayCode) {
+    return {
+      ...room,
+      status: 'VACANT',
+      statusAuthority: 'TIMETABLE',
+      updatedBy: 'HIT Academic Timetable',
+      updatedRole: 'TIMETABLE',
+      timeText: 'Available (Weekend • No scheduled classes)',
+      availableUntil: 'Open',
+      reservedStart: null,
+      reservedEnd: null,
+      reservedUntil: null,
+      currentClass: null,
+      upcomingClass,
+      timeline: [
+        { time: 'All Day', text: 'Weekend • Space Available for Study', status: 'Active' },
+      ],
+    };
+  }
+
+  const todayClasses = roomClasses
+    .filter((c) => c.day === todayCode)
+    .sort((a, b) => a.startHour - b.startHour);
+
+  // Dynamic timeline for today
+  const dynamicTimeline = todayClasses.length > 0
+    ? todayClasses.map((c) => {
+        let status: 'Ended' | 'Active' | 'Upcoming' = 'Upcoming';
+        if (nowDecimal >= c.endHour) status = 'Ended';
+        else if (nowDecimal >= c.startHour && nowDecimal < c.endHour) status = 'Active';
+        const groupPart = c.group !== 'All' ? ` (${c.group})` : '';
+        return {
+          time: `${c.startTime} – ${c.endTime}`,
+          text: `${c.subjectCode} • ${c.subjectName}${groupPart} (${c.faculty})`,
+          status,
+        };
+      })
+    : [{ time: '09:00 - 06:00 PM', text: 'Free Study Period', status: 'Active' as const }];
+
+  // Rule D: After 6:00 PM (18:00) -> VACANT
+  if (nowDecimal >= 18.0) {
+    return {
+      ...room,
+      status: 'VACANT',
+      statusAuthority: 'TIMETABLE',
+      updatedBy: 'HIT Academic Timetable',
+      updatedRole: 'TIMETABLE',
+      timeText: 'Available (Campus timetable concluded at 6:00 PM)',
+      availableUntil: 'Open',
+      reservedStart: null,
+      reservedEnd: null,
+      reservedUntil: null,
+      currentClass: null,
+      upcomingClass,
+      timeline: dynamicTimeline,
+    };
+  }
+
+  // Rule E: Before 9:00 AM (< 9.0) -> VACANT
+  if (nowDecimal < 9.0) {
+    const firstToday = todayClasses[0];
+    return {
+      ...room,
+      status: 'VACANT',
+      statusAuthority: 'TIMETABLE',
+      updatedBy: 'HIT Academic Timetable',
+      updatedRole: 'TIMETABLE',
+      timeText: firstToday
+        ? `Available until ${firstToday.startTime} • Next: ${firstToday.subjectCode} (${firstToday.startTime})`
+        : 'Available (No classes scheduled today)',
+      availableUntil: firstToday ? firstToday.startTime : '06:00 PM',
+      reservedStart: firstToday ? firstToday.startTime : null,
+      reservedEnd: firstToday ? firstToday.endTime : null,
+      reservedUntil: firstToday ? firstToday.endTime : null,
+      currentClass: null,
+      upcomingClass,
+      timeline: dynamicTimeline,
+    };
+  }
+
+  // Active Class interval (Rule A)
+  // If multiple classes overlap or exist, find matching active class deterministically
+  const activeSlot = todayClasses.find(
+    (c) => nowDecimal >= c.startHour && nowDecimal < c.endHour
+  );
+
+  if (activeSlot) {
+    const currentClassInfo: TimetableClassInfo = {
+      subjectCode: activeSlot.subjectCode,
+      subjectName: activeSlot.subjectName,
+      faculty: activeSlot.faculty,
+      facultyInitials: activeSlot.facultyInitials,
+      startTime: activeSlot.startTime,
+      endTime: activeSlot.endTime,
+      day: activeSlot.day,
+      group: activeSlot.group,
+      type: activeSlot.type || 'Lecture',
+      room: room.id,
+    };
+
+    const nextClassToday = todayClasses.find((c) => c.startHour >= activeSlot.endHour);
+    const activeNextUpcoming = nextClassToday
+      ? {
+          subjectCode: nextClassToday.subjectCode,
+          subjectName: nextClassToday.subjectName,
+          faculty: nextClassToday.faculty,
+          facultyInitials: nextClassToday.facultyInitials,
+          startTime: nextClassToday.startTime,
+          endTime: nextClassToday.endTime,
+          day: nextClassToday.day,
+          group: nextClassToday.group,
+          type: nextClassToday.type || 'Lecture',
+          room: room.id,
+        }
+      : upcomingClass;
+
+    const groupText = activeSlot.group !== 'All' ? ` • ${activeSlot.group}` : '';
+    return {
+      ...room,
+      status: 'OCCUPIED',
+      statusAuthority: 'TIMETABLE',
+      updatedBy: activeSlot.faculty,
+      updatedRole: 'TIMETABLE',
+      timeText: `Occupied: ${activeSlot.subjectCode} ${activeSlot.subjectName} (${activeSlot.startTime} – ${activeSlot.endTime})${groupText} • ${activeSlot.faculty}`,
+      availableUntil: activeSlot.endTime,
+      reservedStart: activeSlot.startTime,
+      reservedEnd: activeSlot.endTime,
+      reservedUntil: null,
+      currentClass: currentClassInfo,
+      upcomingClass: activeNextUpcoming,
+      timeline: dynamicTimeline,
+    };
+  }
+
+  // Free period / Between Classes (Rule B & C)
+  const nextToday = todayClasses.find((c) => c.startHour > nowDecimal);
+  if (nextToday) {
+    const nextClassInfo: TimetableClassInfo = {
+      subjectCode: nextToday.subjectCode,
+      subjectName: nextToday.subjectName,
+      faculty: nextToday.faculty,
+      facultyInitials: nextToday.facultyInitials,
+      startTime: nextToday.startTime,
+      endTime: nextToday.endTime,
+      day: nextToday.day,
+      group: nextToday.group,
+      type: nextToday.type || 'Lecture',
+      room: room.id,
+    };
+
+    return {
+      ...room,
+      status: 'VACANT',
+      statusAuthority: 'TIMETABLE',
+      updatedBy: 'HIT Academic Timetable',
+      updatedRole: 'TIMETABLE',
+      timeText: `Available now until ${nextToday.startTime} • Next: ${nextToday.subjectCode} (${nextToday.faculty})`,
+      availableUntil: nextToday.startTime,
+      reservedStart: nextToday.startTime,
+      reservedEnd: nextToday.endTime,
+      reservedUntil: nextToday.endTime,
+      currentClass: null,
+      upcomingClass: nextClassInfo,
+      timeline: dynamicTimeline,
+    };
+  }
+
+  // No more classes today
+  return {
+    ...room,
+    status: 'VACANT',
+    statusAuthority: 'TIMETABLE',
+    updatedBy: 'HIT Academic Timetable',
+    updatedRole: 'TIMETABLE',
+    timeText: 'Available (Classes concluded for today)',
+    availableUntil: '06:00 PM',
+    reservedStart: null,
+    reservedEnd: null,
+    reservedUntil: null,
+    currentClass: null,
+    upcomingClass,
+    timeline: dynamicTimeline,
+  };
 }
 
 /**
  * Checks whether a user with given role can override/update a room with target authority.
  * Room permission hierarchy:
  * - Student booking/status → can be changed by Faculty or Admin (or Student if Student-controlled).
+ * - Timetable occupancy → can be overridden by Admin or Faculty.
  * - Faculty booking/status → can be changed ONLY by Admin.
  * - Admin booking/status → can be changed ONLY by Admin.
  */
@@ -219,6 +518,21 @@ export function canUserOverrideRoom(
     };
   }
 
+  // Timetable scheduled class → can be overridden by Faculty or Admin
+  if (targetAuth === 'TIMETABLE') {
+    if (userAuth === 'FACULTY') {
+      return {
+        allowed: true,
+        isOverride: true,
+      };
+    }
+    return {
+      allowed: false,
+      reason: 'This room is occupied by a scheduled academic timetable class.',
+      isOverride: false,
+    };
+  }
+
   // Student booking/status → can be changed by Faculty or Admin (or Student if Student-controlled)
   if (targetAuth === 'STUDENT') {
     if (userAuth === 'FACULTY') {
@@ -240,6 +554,43 @@ export function canUserOverrideRoom(
     reason: 'Permission denied.',
     isOverride: false,
   };
+}
+
+/**
+ * Global 6:00 PM Real-Time Rule:
+ * At exactly 6:00 PM or later based on the real browser/device time,
+ * the status of EVERY room automatically becomes VACANT for the rest of the day.
+ * Applies to ALL rooms: timetable-controlled, QR-controlled, reserved, occupied, or manual.
+ *
+ * Before 6:00 PM, returns rooms with their normal status.
+ * On date roll-over (next day before 6 PM), normal status resumes automatically.
+ */
+export function apply6PMRuleToRooms(roomsList: Room[], now: Date): Room[] {
+  const isAfter6PM = now.getHours() >= 18;
+  if (!isAfter6PM) {
+    return roomsList;
+  }
+
+  return roomsList.map((r) => {
+    const updatedTimeline = (r.timeline || []).map((slot) => ({
+      ...slot,
+      status: 'Ended' as const,
+    }));
+
+    return {
+      ...r,
+      status: 'VACANT' as RoomStatus,
+      timeText: 'Available (Campus operations concluded at 6:00 PM)',
+      availableUntil: 'Open',
+      currentClass: null,
+      reservedStart: null,
+      reservedEnd: null,
+      reservedUntil: null,
+      timeline: updatedTimeline.length > 0
+        ? updatedTimeline
+        : [{ time: '09:00 - 06:00 PM', text: 'Day Concluded • Space Available', status: 'Ended' as const }],
+    };
+  });
 }
 
 /**
@@ -337,10 +688,10 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
   const [navHistory, setNavHistory] = useState<ViewScreen[]>([]);
 
   // Centralized Room State
-  // Real-time clock for reservation expiry (separate from timetable simulatedHour)
+  // Real-time clock for reservation expiry and automatic 6:00 PM transition
   const [currentTime, setCurrentTime] = useState<Date>(() => new Date());
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 30000);
+    const timer = setInterval(() => setCurrentTime(new Date()), 10000);
     return () => clearInterval(timer);
   }, []);
 
@@ -404,7 +755,15 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
     return `${String(h).padStart(2, '0')}:${min} ${mer}`;
   }, []);
 
-  const [rooms, setRooms] = useState<Room[]>(INITIAL_ROOMS);
+  const [rooms, setRooms] = useState<Room[]>(() => {
+    const initialNow = new Date();
+    return INITIAL_ROOMS.map((r) => {
+      if (r.isTimetableControlled && !isProtectedQrRoom(r.id)) {
+        return computeTimetableRoomState(r, initialNow, HIT_TIMETABLE);
+      }
+      return r;
+    });
+  });
 
   // Check for overlapping reservations for a given room on a given date
   const checkOverlap = useCallback((
@@ -489,6 +848,9 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
           effectiveRooms = INITIAL_ROOMS.map((ir) => {
             const cleanId = ir.id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
             const pr = parsedMap.get(cleanId);
+            if (ir.isTimetableControlled && !isProtectedQrRoom(ir.id)) {
+              return computeTimetableRoomState(ir, new Date(), HIT_TIMETABLE);
+            }
             if (!pr) return ir;
             return {
               ...ir,
@@ -511,6 +873,14 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
           });
           setRooms(effectiveRooms);
         }
+      } else {
+        effectiveRooms = INITIAL_ROOMS.map((ir) => {
+          if (ir.isTimetableControlled && !isProtectedQrRoom(ir.id)) {
+            return computeTimetableRoomState(ir, new Date(), HIT_TIMETABLE);
+          }
+          return ir;
+        });
+        setRooms(effectiveRooms);
       }
 
       let effectiveHistory = INITIAL_HISTORY;
@@ -1316,57 +1686,123 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
     return null;
   }, []);
 
-  // Monitor reserved rooms using REAL wall-clock time: auto-expire to VACANT when end time passes
+  // Monitor timetable-controlled rooms and reserved rooms using REAL wall-clock time
   useEffect(() => {
     const now = currentTime;
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
-    setRooms(prevRooms => {
+    setRooms((prevRooms) => {
       let hasChange = false;
-      const updatedRooms = prevRooms.map(r => {
-        if (r.status === 'RESERVED' && r.reservedUntil) {
-          // Only expire if reservation date matches today (or no date set — legacy)
-          const reservationDate = r.reservationDate || todayStr;
-          if (reservationDate !== todayStr) return r; // future booking, not yet active
+      const updatedRooms = prevRooms.map((r) => {
+        // 1. STRICT PROTECTION: NEVER apply timetable engine to the 5 QR rooms
+        if (isProtectedQrRoom(r.id)) {
+          if (r.status === 'RESERVED' && r.reservedUntil) {
+            const reservationDate = r.reservationDate || todayStr;
+            if (reservationDate === todayStr) {
+              const endMins = parseTimeToMinutes(r.reservedUntil);
+              if (endMins !== null && nowMinutes >= endMins) {
+                hasChange = true;
+                const expiredHistoryItem: StatusHistoryItem = {
+                  id: Date.now() + Math.random(),
+                  roomNumber: r.roomNumber || r.id,
+                  previousStatus: 'RESERVED',
+                  newStatus: 'VACANT',
+                  updatedBy: 'Auto-Scheduler',
+                  timestamp: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  time: 'Just now',
+                  source: 'MANUAL',
+                  note: `Reservation ended at ${r.reservedUntil} • Auto-released to VACANT`,
+                  room: r.id,
+                  from: 'RESERVED',
+                  to: 'VACANT',
+                  by: 'Auto-Scheduler',
+                };
+                setHistory((prevHist) => [expiredHistoryItem, ...prevHist]);
+                return {
+                  ...r,
+                  status: 'VACANT' as RoomStatus,
+                  reservedUntil: null,
+                  reservedStart: null,
+                  reservedEnd: null,
+                  reservationDate: null,
+                  timeText: 'Available now (Reservation concluded)',
+                };
+              }
+            }
+          }
+          return r;
+        }
 
-          const endMins = parseTimeToMinutes(r.reservedUntil);
-          if (endMins !== null && nowMinutes >= endMins) {
+        // 2. TIMETABLE-CONTROLLED ROOMS
+        if (r.isTimetableControlled) {
+          // If room has an active explicit Faculty or Admin override/booking, respect it until concluded
+          if (r.status === 'RESERVED' && r.reservedUntil && (r.statusAuthority === 'ADMIN' || r.statusAuthority === 'FACULTY')) {
+            const reservationDate = r.reservationDate || todayStr;
+            if (reservationDate === todayStr) {
+              const endMins = parseTimeToMinutes(r.reservedUntil);
+              if (endMins !== null && nowMinutes >= endMins) {
+                hasChange = true;
+                return computeTimetableRoomState(r, now, timetable);
+              }
+              return r;
+            }
+          }
+
+          const liveState = computeTimetableRoomState(r, now, timetable);
+          if (
+            r.status !== liveState.status ||
+            r.timeText !== liveState.timeText ||
+            r.statusAuthority !== liveState.statusAuthority ||
+            JSON.stringify(r.currentClass) !== JSON.stringify(liveState.currentClass) ||
+            JSON.stringify(r.upcomingClass) !== JSON.stringify(liveState.upcomingClass)
+          ) {
             hasChange = true;
-            const expiredHistoryItem: StatusHistoryItem = {
-              id: Date.now() + Math.random(),
-              roomNumber: r.roomNumber || r.id,
-              previousStatus: 'RESERVED',
-              newStatus: 'VACANT',
-              updatedBy: 'Auto-Scheduler',
-              timestamp: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              time: 'Just now',
-              source: 'MANUAL',
-              note: `Reservation ended at ${r.reservedUntil} • Auto-released to VACANT`,
-              room: r.id,
-              from: 'RESERVED',
-              to: 'VACANT',
-              by: 'Auto-Scheduler',
-            };
-            setHistory(prevHist => [expiredHistoryItem, ...prevHist]);
-            return {
-              ...r,
-              status: 'VACANT' as RoomStatus,
-              reservedUntil: null,
-              reservedStart: null,
-              reservedEnd: null,
-              reservationDate: null,
-              timeText: 'Available now (Reservation concluded)',
-            };
+            return liveState;
+          }
+          return r;
+        }
+
+        // 3. Normal campus supporting room reservation expiry
+        if (r.status === 'RESERVED' && r.reservedUntil) {
+          const reservationDate = r.reservationDate || todayStr;
+          if (reservationDate === todayStr) {
+            const endMins = parseTimeToMinutes(r.reservedUntil);
+            if (endMins !== null && nowMinutes >= endMins) {
+              hasChange = true;
+              const expiredHistoryItem: StatusHistoryItem = {
+                id: Date.now() + Math.random(),
+                roomNumber: r.roomNumber || r.id,
+                previousStatus: 'RESERVED',
+                newStatus: 'VACANT',
+                updatedBy: 'Auto-Scheduler',
+                timestamp: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                time: 'Just now',
+                source: 'MANUAL',
+                note: `Reservation ended at ${r.reservedUntil} • Auto-released to VACANT`,
+                room: r.id,
+                from: 'RESERVED',
+                to: 'VACANT',
+                by: 'Auto-Scheduler',
+              };
+              setHistory((prevHist) => [expiredHistoryItem, ...prevHist]);
+              return {
+                ...r,
+                status: 'VACANT' as RoomStatus,
+                reservedUntil: null,
+                reservedStart: null,
+                reservedEnd: null,
+                reservationDate: null,
+                timeText: 'Available now (Reservation concluded)',
+              };
+            }
           }
         }
         return r;
       });
       return hasChange ? updatedRooms : prevRooms;
     });
-  }, [currentTime, parseTimeToMinutes]);
-
-  // Timetable display is kept strictly separate from the room-status system as per requirements.
+  }, [currentTime, timetable, parseTimeToMinutes]);
 
 
   // Add Room
@@ -1439,14 +1875,20 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
     }, 1200);
   }, [showToast]);
 
+  // Global Real-Time 6:00 PM Rule:
+  // At exactly 6:00 PM or later based on real browser/device time, EVERY room automatically becomes VACANT
+  const displayRooms = useMemo(() => {
+    return apply6PMRuleToRooms(rooms, currentTime);
+  }, [rooms, currentTime]);
+
   // Calculate Recommended Room based on user requirements from centralized rooms
   const calculateRecommendedRoom = useCallback((crit: BestRoomCriteria): Room | undefined => {
-    let candidates = rooms.filter(r => r.status === 'VACANT');
+    let candidates = displayRooms.filter(r => r.status === 'VACANT');
     if (candidates.length === 0) {
-      candidates = rooms.filter(r => r.status !== 'OCCUPIED');
+      candidates = displayRooms.filter(r => r.status !== 'OCCUPIED');
     }
     if (candidates.length === 0) {
-      candidates = [...rooms];
+      candidates = [...displayRooms];
     }
 
     if (crit.preferredBuilding && crit.preferredBuilding !== 'Any' && crit.preferredBuilding !== 'any') {
@@ -1467,12 +1909,12 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
       return diffA - diffB;
     });
 
-    const match = sorted[0] || rooms.find(r => r.status === 'VACANT') || rooms[0];
+    const match = sorted[0] || displayRooms.find(r => r.status === 'VACANT') || displayRooms[0];
     if (match) {
       setRecommendedRoomId(match.id);
     }
     return match;
-  }, [rooms]);
+  }, [displayRooms]);
 
   // Notifications
   const unreadNotificationCount = useMemo(() => notifications.filter(n => n.unread).length, [notifications]);
@@ -1487,29 +1929,29 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const selectedRoom = useMemo(() => {
-    if (!selectedRoomId) return rooms[0];
+    if (!selectedRoomId) return displayRooms[0];
     const cleanSelected = selectedRoomId.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     return (
-      rooms.find(r => r.id === selectedRoomId) ||
-      rooms.find(r => r.id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanSelected) ||
-      rooms.find(r => (r.roomNumber || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanSelected) ||
-      rooms[0]
+      displayRooms.find(r => r.id === selectedRoomId) ||
+      displayRooms.find(r => r.id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanSelected) ||
+      displayRooms.find(r => (r.roomNumber || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanSelected) ||
+      displayRooms[0]
     );
-  }, [rooms, selectedRoomId]);
+  }, [displayRooms, selectedRoomId]);
 
   const recommendedRoom = useMemo(() => {
-    if (!recommendedRoomId) return rooms[0];
+    if (!recommendedRoomId) return displayRooms[0];
     const cleanRec = recommendedRoomId.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     return (
-      rooms.find(r => r.id === recommendedRoomId) ||
-      rooms.find(r => r.id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanRec) ||
-      rooms[0]
+      displayRooms.find(r => r.id === recommendedRoomId) ||
+      displayRooms.find(r => r.id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanRec) ||
+      displayRooms[0]
     );
-  }, [rooms, recommendedRoomId]);
+  }, [displayRooms, recommendedRoomId]);
 
   // Stats for any building
   const getBuildingStats = useCallback((bldg: string) => {
-    const list = bldg === 'All' ? rooms : rooms.filter(r => r.building === bldg);
+    const list = bldg === 'All' ? displayRooms : displayRooms.filter(r => r.building === bldg);
     return {
       total: list.length,
       vacant: list.filter(r => r.status === 'VACANT').length,
@@ -1517,7 +1959,7 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
       reserved: list.filter(r => r.status === 'RESERVED').length,
       noInfo: list.filter(r => r.status === 'NO INFORMATION').length,
     };
-  }, [rooms]);
+  }, [displayRooms]);
 
   const setSimulatedTime = useCallback((hour: number, label: string) => {
     setSimulatedHour(hour);
@@ -1538,7 +1980,7 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
     updateUserProfile,
     changeUserPassword,
     canUserOverrideRoom: (roomAuthority?: AuthorityLevel) => canUserOverrideRoom(currentUser.role || currentRole, roomAuthority),
-    rooms,
+    rooms: displayRooms,
     selectedRoomId,
     setSelectedRoomId,
     selectedRoom,

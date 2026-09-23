@@ -42,14 +42,19 @@ export const RoomCard: React.FC<RoomCardProps> = ({ room, showUpdateAction = tru
             <span className="text-[10px] font-semibold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded shrink-0">
               {room.building} • Floor {room.floor}
             </span>
-            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
+            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-0.5 ${
               (room.statusAuthority || 'STUDENT') === 'ADMIN'
                 ? 'bg-purple-100 text-purple-800'
                 : (room.statusAuthority || 'STUDENT') === 'FACULTY'
                 ? 'bg-blue-100 text-blue-800'
+                : (room.statusAuthority || 'STUDENT') === 'TIMETABLE'
+                ? 'bg-amber-100 text-amber-800'
                 : 'bg-slate-100 text-slate-600'
             }`}>
-              {room.statusAuthority || 'STUDENT'}
+              {(room.statusAuthority || 'STUDENT') === 'TIMETABLE' && (
+                <span className="material-symbols-outlined text-[10px]">calendar_month</span>
+              )}
+              <span>{room.statusAuthority || 'STUDENT'}</span>
             </span>
           </div>
           <p className="text-xs text-slate-500 font-medium mt-0.5 truncate">
@@ -60,6 +65,16 @@ export const RoomCard: React.FC<RoomCardProps> = ({ room, showUpdateAction = tru
           <StatusBadge status={room.status} />
         </div>
       </div>
+
+      {room.status === 'OCCUPIED' && room.currentClass && (
+        <div className="bg-rose-50/80 border border-rose-100 p-2 rounded-xl flex items-center justify-between text-[11px] text-rose-900 min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="material-symbols-outlined text-xs text-rose-600 shrink-0">school</span>
+            <span className="font-bold truncate">{room.currentClass.subjectCode} • {room.currentClass.subjectName}</span>
+          </div>
+          <span className="text-[10px] font-semibold text-rose-700 shrink-0 pl-1">{room.currentClass.faculty}</span>
+        </div>
+      )}
 
       <div className="bg-slate-50 p-2.5 rounded-xl flex items-start gap-2 text-xs text-slate-700 min-w-0 w-full">
         <span className="material-symbols-outlined text-sm text-slate-400 shrink-0 mt-0.5">schedule</span>

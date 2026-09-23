@@ -18,6 +18,7 @@ export const RoomDetailsScreen: React.FC = () => {
     currentRole,
     bookVacantRoom,
     checkOverlap,
+    timetable,
   } = useSpotFree();
   const { effectiveView } = useUIPrefs();
   const isWeb = effectiveView === 'web';
@@ -186,10 +187,18 @@ export const RoomDetailsScreen: React.FC = () => {
                 ? 'bg-purple-100 text-purple-800'
                 : (room.statusAuthority || 'STUDENT') === 'FACULTY'
                 ? 'bg-blue-100 text-blue-800'
+                : (room.statusAuthority || 'STUDENT') === 'TIMETABLE'
+                ? 'bg-amber-100 text-amber-800'
                 : 'bg-slate-100 text-slate-700'
             }`}>
               <span className="material-symbols-outlined text-xs">
-                {(room.statusAuthority || 'STUDENT') === 'ADMIN' ? 'shield_person' : (room.statusAuthority || 'STUDENT') === 'FACULTY' ? 'school' : 'person'}
+                {(room.statusAuthority || 'STUDENT') === 'ADMIN'
+                  ? 'shield_person'
+                  : (room.statusAuthority || 'STUDENT') === 'FACULTY'
+                  ? 'school'
+                  : (room.statusAuthority || 'STUDENT') === 'TIMETABLE'
+                  ? 'calendar_month'
+                  : 'person'}
               </span>
               <span>{room.statusAuthority || 'STUDENT'}{room.updatedBy ? ` (${room.updatedBy})` : ''}</span>
             </span>
@@ -238,6 +247,135 @@ export const RoomDetailsScreen: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Timetable-Controlled Room Details Section */}
+        {(() => {
+          const cleanRoomId = (room.id || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+          const roomTimetableClasses = (timetable || []).filter(
+            (c) => c.room.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanRoomId
+          );
+
+          if (!room.isTimetableControlled && roomTimetableClasses.length === 0) return null;
+
+          return (
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-base text-amber-600">calendar_month</span>
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                    Official Academic Routine
+                  </h3>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[11px]">verified</span>
+                  Timetable Synchronized
+                </span>
+              </div>
+
+              {/* Current Class Details */}
+              {room.status === 'OCCUPIED' && room.currentClass && (
+                <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse" />
+                      Class In Session
+                    </span>
+                    <span className="text-xs font-black text-rose-800">
+                      {room.currentClass.startTime} – {room.currentClass.endTime}
+                    </span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-900">
+                      {room.currentClass.subjectCode}: {room.currentClass.subjectName}
+                    </h4>
+                    <div className="flex items-center gap-3 text-xs text-slate-600 mt-1 flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs text-slate-400">person</span>
+                        {room.currentClass.faculty}
+                        {room.currentClass.facultyInitials ? ` (${room.currentClass.facultyInitials})` : ''}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs text-slate-400">groups</span>
+                        {room.currentClass.group}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs text-slate-400">category</span>
+                        {room.currentClass.type || 'Lecture'}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs text-slate-400">meeting_room</span>
+                        Room: {room.id}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Next Upcoming Class */}
+              {room.upcomingClass && (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-xs text-blue-600">upcoming</span>
+                      Next Class ({room.upcomingClass.day})
+                    </span>
+                    <span className="text-xs font-bold text-slate-700">
+                      {room.upcomingClass.startTime} – {room.upcomingClass.endTime}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+                    <div>
+                      <span className="font-bold text-slate-900">
+                        {room.upcomingClass.subjectCode}: {room.upcomingClass.subjectName}
+                      </span>
+                      <p className="text-slate-500 text-[11px] mt-0.5">
+                        Teacher: {room.upcomingClass.faculty}
+                        {room.upcomingClass.facultyInitials ? ` (${room.upcomingClass.facultyInitials})` : ''} • Group: {room.upcomingClass.group}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-semibold bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-700">
+                      {room.upcomingClass.type || 'Lecture'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Complete Weekly Timetable for this Room */}
+              {roomTimetableClasses.length > 0 && (
+                <div className="flex flex-col gap-2 pt-1 border-t border-slate-100">
+                  <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                    Weekly Schedule for {room.id}
+                  </span>
+                  <div className="grid grid-cols-1 gap-1.5">
+                    {roomTimetableClasses.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-xl border border-slate-100 bg-slate-50/60 flex items-start justify-between gap-3 text-xs"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-[10px] bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded">
+                              {item.day}
+                            </span>
+                            <span className="font-bold text-slate-900 truncate">
+                              {item.subjectCode} • {item.subjectName}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 mt-1 truncate">
+                            {item.faculty} {item.facultyInitials ? `(${item.facultyInitials})` : ''} • {item.group} • {item.type}
+                          </p>
+                        </div>
+                        <span className="text-[11px] font-semibold text-slate-700 shrink-0 bg-white px-2 py-1 rounded border border-slate-200">
+                          {item.startTime} – {item.endTime}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Amenities & Features */}
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col gap-2">
@@ -385,7 +523,11 @@ export const RoomDetailsScreen: React.FC = () => {
               <span className="material-symbols-outlined text-rose-600 text-base shrink-0 mt-0.5">lock</span>
               <div>
                 <span className="font-bold block">{authCheck.reason}</span>
-                <span className="text-rose-700">As a {currentRole}, you cannot modify status controlled by higher authority ({room.statusAuthority}).</span>
+                <span className="text-rose-700">
+                  {room.statusAuthority === 'TIMETABLE'
+                    ? 'This room status is automatically controlled by the official campus routine.'
+                    : `As a ${currentRole}, you cannot modify status controlled by higher authority (${room.statusAuthority}).`}
+                </span>
               </div>
             </div>
           )}
