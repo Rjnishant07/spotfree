@@ -1,0 +1,22 @@
+{
+  "name": "spotfree-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --env-file=.env server.js",
+    "start": "node server.js",
+    "test-mail": "node --env-file=.env scripts/test-mail.js",
+    "smoke": "node scripts/smoke.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.0"
+  },
+  "engines": {
+    "node": ">=20.6"
+  }
+}
