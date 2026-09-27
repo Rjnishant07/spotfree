@@ -151,4 +151,6 @@ export type ViewScreen =
   | 'notifications'
   | 'profile'
   | 'my-timetable'
-  | 'user-management';
+  | 'user-management'
+  | 'campus-insights'
+  | 'report-issue';
