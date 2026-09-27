@@ -1,0 +1,7 @@
+# secrets and build output
+.env
+.env.local
+.env.*.local
+node_modules
+.next
+.DS_Store

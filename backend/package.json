@@ -1,0 +1,28 @@
+{
+  "name": "spotfree-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --env-file=.env server.js",
+    "start": "node server.js",
+    "test-mail": "node --env-file=.env scripts/test-mail.js",
+    "smoke": "node scripts/smoke.js",
+    "qr-sheet": "node --env-file=.env scripts/qr-sheet.js",
+    "sync": "node scripts/sync-from-frontend.cjs"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.0"
+  },
+  "engines": {
+    "node": ">=20.6"
+  },
+  "devDependencies": {
+    "qrcode": "^1.5.4"
+  }
+}
