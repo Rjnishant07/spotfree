@@ -117,6 +117,17 @@ export const AdminDashboard: React.FC = () => {
             </button>
 
             <button
+              onClick={() => navigate('user-management')}
+              className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-1 text-center hover:border-slate-900 active:scale-95 transition-all"
+            >
+              <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-700 mb-1">
+                <span className="material-symbols-outlined text-2xl">manage_accounts</span>
+              </div>
+              <span className="text-xs font-bold text-slate-900">User Management</span>
+              <span className="text-[10px] text-slate-400">Students, faculty & admins</span>
+            </button>
+
+            <button
               onClick={() => navigate('status-history')}
               className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center gap-1 text-center hover:border-slate-900 active:scale-95 transition-all"
             >
