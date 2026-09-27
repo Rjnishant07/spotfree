@@ -21,6 +21,8 @@ export const BottomNavigation: React.FC = () => {
     currentView === 'status-updated';
 
   const isHistoryActive = currentView === 'status-history';
+  const isInsightsActive = currentView === 'campus-insights';
+  const isIssueActive = currentView === 'report-issue';
   const isProfileActive = currentView === 'profile';
 
   const handleDashboardClick = () => {
@@ -39,12 +41,20 @@ export const BottomNavigation: React.FC = () => {
     navigate('status-history');
   };
 
+  const handleInsightsClick = () => {
+    navigate('campus-insights');
+  };
+
+  const handleIssueClick = () => {
+    navigate('report-issue');
+  };
+
   const handleProfileClick = () => {
     navigate('profile');
   };
 
   return (
-    <nav className="fixed bottom-0 max-w-[430px] w-full bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-1.5 flex items-center justify-around z-40 shadow-lg">
+    <nav className="fixed bottom-0 max-w-[430px] w-full bg-white/95 backdrop-blur-md border-t border-slate-200 px-1.5 py-1.5 flex items-center justify-around z-40 shadow-lg">
       <button
         onClick={handleDashboardClick}
         className={`flex flex-col items-center gap-0.5 py-1 px-3 transition-colors cursor-pointer ${
@@ -82,6 +92,26 @@ export const BottomNavigation: React.FC = () => {
       >
         <span className="material-symbols-outlined text-xl">history</span>
         <span className="text-[11px]">History</span>
+      </button>
+
+
+
+      <button
+        onClick={handleInsightsClick}
+        className={`flex flex-col items-center gap-0.5 py-1 px-2 transition-colors cursor-pointer ${isInsightsActive ? 'text-emerald-700 font-bold' : 'text-slate-500 hover:text-slate-900'}`}
+        aria-label="Campus Insights"
+      >
+        <span className="material-symbols-outlined text-xl">analytics</span>
+        <span className="text-[10px]">Insights</span>
+      </button>
+
+      <button
+        onClick={handleIssueClick}
+        className={`flex flex-col items-center gap-0.5 py-1 px-2 transition-colors cursor-pointer ${isIssueActive ? 'text-emerald-700 font-bold' : 'text-slate-500 hover:text-slate-900'}`}
+        aria-label="Report an Issue"
+      >
+        <span className="material-symbols-outlined text-xl">report_problem</span>
+        <span className="text-[10px]">Issues</span>
       </button>
 
       <button
