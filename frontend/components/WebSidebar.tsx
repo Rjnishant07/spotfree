@@ -38,6 +38,13 @@ export const WebSidebar: React.FC = () => {
       match: ['room-availability', 'room-details'],
     },
     {
+      key: 'insights',
+      label: 'Campus Insights',
+      icon: 'analytics',
+      view: 'campus-insights',
+      match: ['campus-insights'],
+    },
+    {
       key: 'best-room',
       label: 'Find Best Room',
       icon: 'auto_awesome',
@@ -94,6 +101,13 @@ export const WebSidebar: React.FC = () => {
       view: 'notifications',
       match: ['notifications'],
       badge: unreadNotificationCount,
+    },
+    {
+      key: 'issues',
+      label: 'Report an Issue',
+      icon: 'report_problem',
+      view: 'report-issue',
+      match: ['report-issue'],
     },
     {
       key: 'profile',
