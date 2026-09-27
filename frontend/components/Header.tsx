@@ -44,12 +44,12 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, showBack = fals
             : 'bg-white/90 backdrop-blur-md border-b border-slate-200'
         }`}
       >
-        <div className="flex items-center justify-between px-5 lg:px-8 h-[68px] w-full max-w-[1440px] mx-auto">
+        <div className="flex items-center justify-between px-5 lg:px-8 h-[84px] w-full max-w-[1440px] mx-auto">
           <div className="flex items-center gap-3 min-w-0">
             {showBack && (
               <button
                 onClick={goBack}
-                className={`w-9 h-9 rounded-xl flex items-center justify-center active:scale-95 transition-all shrink-0 cursor-pointer ${
+                className={`w-11 h-11 rounded-xl flex items-center justify-center active:scale-95 transition-all shrink-0 cursor-pointer ${
                   isDark
                     ? 'bg-[#221c15] hover:bg-[#2c251c] border border-[#443b2c] text-[#f1ece1] hover:text-white shadow-xs'
                     : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
@@ -57,7 +57,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, showBack = fals
                 title="Go Back"
                 aria-label="Go Back"
               >
-                <span className="material-symbols-outlined text-lg">arrow_back</span>
+                <span className="material-symbols-outlined text-xl">arrow_back</span>
               </button>
             )}
             <div className="min-w-0">
@@ -113,7 +113,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, showBack = fals
             {/* Notifications Button */}
             <button
               onClick={() => navigate('notifications')}
-              className={`relative w-9 h-9 rounded-xl flex items-center justify-center active:scale-95 transition-all shadow-xs cursor-pointer ${
+              className={`relative w-11 h-11 rounded-xl flex items-center justify-center active:scale-95 transition-all shadow-xs cursor-pointer ${
                 isDark
                   ? 'bg-[#221c15] border border-[#443b2c] text-[#f1ece1] hover:text-white hover:bg-[#2c251c] hover:border-[#6b5f4c]'
                   : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -145,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, showBack = fals
               aria-label="Profile"
             >
               <div
-                className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shadow-xs ${
+                className={`w-10 h-10 rounded-full font-bold text-xs flex items-center justify-center shadow-xs ${
                   isDark
                     ? 'bg-[#221c15] text-emerald-300 border border-emerald-500/40 ring-1 ring-emerald-500/20'
                     : 'bg-[#1c1917] text-white'
