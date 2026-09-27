@@ -24,6 +24,7 @@ import { StatusHistoryScreen } from '@/components/screens/StatusHistoryScreen';
 import { NotificationsScreen } from '@/components/screens/NotificationsScreen';
 import { ProfileScreen } from '@/components/screens/ProfileScreen';
 import { MyTimetableScreen } from '@/components/screens/MyTimetableScreen';
+import { UserManagementScreen } from '@/components/screens/UserManagementScreen';
 
 function SpotFreeApp() {
   const { currentView, authChecked } = useSpotFree();
