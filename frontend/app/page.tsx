@@ -25,6 +25,8 @@ import { NotificationsScreen } from '@/components/screens/NotificationsScreen';
 import { ProfileScreen } from '@/components/screens/ProfileScreen';
 import { MyTimetableScreen } from '@/components/screens/MyTimetableScreen';
 import { UserManagementScreen } from '@/components/screens/UserManagementScreen';
+import { CampusInsightsScreen } from '@/components/screens/CampusInsightsScreen';
+import { ReportIssueScreen } from '@/components/screens/ReportIssueScreen';
 
 function SpotFreeApp() {
   const { currentView, authChecked } = useSpotFree();
@@ -73,6 +75,10 @@ function SpotFreeApp() {
         return <MyTimetableScreen />;
       case 'user-management':
         return <UserManagementScreen />;
+      case 'campus-insights':
+        return <CampusInsightsScreen />;
+      case 'report-issue':
+        return <ReportIssueScreen />;
       default:
         return <StudentDashboard />;
     }
