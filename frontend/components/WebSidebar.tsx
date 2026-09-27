@@ -121,9 +121,9 @@ export const WebSidebar: React.FC = () => {
   return (
     <aside className="sticky top-0 h-screen w-[72px] lg:w-[248px] shrink-0 bg-white border-r border-slate-200 flex flex-col z-30">
       {/* Brand */}
-      <div className="flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-5 h-16 border-b border-slate-100 shrink-0">
-        <div className="w-9 h-9 rounded-xl bg-[#1c1917] flex items-center justify-center text-emerald-400 shadow-sm shrink-0">
-          <span className="material-symbols-outlined text-xl">meeting_room</span>
+      <div className="flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-5 h-[84px] border-b border-slate-100 shrink-0">
+        <div className="w-11 h-11 rounded-xl bg-[#1c1917] flex items-center justify-center text-emerald-400 shadow-sm shrink-0">
+          <span className="material-symbols-outlined text-2xl">meeting_room</span>
         </div>
         <div className="hidden lg:block min-w-0">
           <div className="font-bold text-slate-900 leading-tight">SpotFree</div>
