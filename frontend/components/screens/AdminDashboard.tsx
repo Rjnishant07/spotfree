@@ -118,7 +118,7 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-[10px] font-semibold text-slate-400">3 wings</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
             {bldgStats.map(({ bldg, stats }) => {
               const occupancy = stats.total ? Math.round(((stats.occupied + stats.reserved) / stats.total) * 100) : 0;
               return (
@@ -189,6 +189,20 @@ export const AdminDashboard: React.FC = () => {
                 tone: 'purple',
                 action: () => navigate('status-history'),
               },
+              {
+                title: 'Campus Insights',
+                desc: 'Utilization & planning',
+                icon: 'analytics',
+                tone: 'amber',
+                action: () => navigate('campus-insights'),
+              },
+              {
+                title: 'Issue Reports',
+                desc: 'Track room problems',
+                icon: 'report_problem',
+                tone: 'rose',
+                action: () => navigate('report-issue'),
+              },
             ].map((item) => (
               <button
                 key={item.title}
@@ -199,6 +213,8 @@ export const AdminDashboard: React.FC = () => {
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                   item.tone === 'emerald' ? 'bg-emerald-50 text-emerald-700' :
                   item.tone === 'blue' ? 'bg-blue-50 text-blue-700' :
+                  item.tone === 'amber' ? 'bg-amber-50 text-amber-700' :
+                  item.tone === 'rose' ? 'bg-rose-50 text-rose-700' :
                   'bg-purple-50 text-purple-700'
                 }`}>
                   <span className="material-symbols-outlined text-xl">{item.icon}</span>
