@@ -71,6 +71,8 @@ function SpotFreeApp() {
         return <ProfileScreen />;
       case 'my-timetable':
         return <MyTimetableScreen />;
+      case 'user-management':
+        return <UserManagementScreen />;
       default:
         return <StudentDashboard />;
     }
