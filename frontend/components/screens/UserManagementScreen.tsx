@@ -78,7 +78,7 @@ export const UserManagementScreen: React.FC = () => {
 
   return (
     <div className="flex flex-col w-full min-h-screen pb-24 bg-[#fafaf9]">
-      <Header title="User Management" subtitle="SpotFree Administration" showBack onBack={() => navigate('admin-dashboard')} />
+      <Header title="User Management" subtitle="SpotFree Administration" showBack />
       <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-5">
         <div className="bg-[#1c1917] text-white p-5 rounded-2xl shadow-sm flex items-center justify-between">
           <div>
