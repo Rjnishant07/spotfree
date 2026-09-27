@@ -150,4 +150,5 @@ export type ViewScreen =
   | 'status-history'
   | 'notifications'
   | 'profile'
-  | 'my-timetable';
+  | 'my-timetable'
+  | 'user-management';
