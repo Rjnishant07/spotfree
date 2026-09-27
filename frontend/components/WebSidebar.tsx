@@ -4,6 +4,7 @@ import React from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
 import { ViewScreen } from '@/lib/types';
 import { SidebarSwitcher } from '@/components/ViewThemeSwitcher';
+import { useUIPrefs } from '@/context/UIPrefsContext';
 
 interface NavItem {
   key: string;
@@ -17,6 +18,8 @@ interface NavItem {
 /** Left navigation used by the web (desktop) layout. Replaces the mobile bottom bar. */
 export const WebSidebar: React.FC = () => {
   const { currentRole, currentView, navigate, currentUser, unreadNotificationCount } = useSpotFree();
+  const { resolvedTheme } = useUIPrefs();
+  const isDark = resolvedTheme === 'dark';
   const role = (currentRole || 'student').toLowerCase();
 
   const dashboardView: ViewScreen =
@@ -119,15 +122,15 @@ export const WebSidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="sticky top-0 h-screen w-[72px] lg:w-[248px] shrink-0 bg-white border-r border-slate-200 flex flex-col z-30">
+    <aside className={`sticky top-0 h-screen w-[72px] lg:w-[248px] shrink-0 flex flex-col z-30 transition-colors duration-150 ${isDark ? "bg-[#17130f] border-r border-[#332a20]" : "bg-white border-r border-slate-200"}`}>
       {/* Brand */}
-      <div className="flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-5 h-[84px] border-b border-slate-100 shrink-0">
-        <div className="w-11 h-11 rounded-xl bg-[#1c1917] flex items-center justify-center text-emerald-400 shadow-sm shrink-0">
+      <div className={`flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-5 h-[84px] shrink-0 border-b ${isDark ? "border-[#332a20]" : "border-slate-100"}`}>
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-emerald-400 shadow-sm shrink-0 ${isDark ? "bg-[#2a241d] border border-[#443b2d]" : "bg-[#1c1917]"}`}>
           <span className="material-symbols-outlined text-2xl">meeting_room</span>
         </div>
         <div className="hidden lg:block min-w-0">
-          <div className="font-bold text-slate-900 leading-tight">SpotFree</div>
-          <div className="text-[11px] text-slate-500 leading-tight truncate">Heritage Institute of Technology</div>
+          <div className={`font-bold leading-tight ${isDark ? "text-[#f5f1e8]" : "text-slate-900"}`}>SpotFree</div>
+          <div className={`text-[11px] leading-tight truncate ${isDark ? "text-[#a89d8b]" : "text-slate-500"}`}>Heritage Institute of Technology</div>
         </div>
       </div>
 
@@ -145,13 +148,13 @@ export const WebSidebar: React.FC = () => {
               aria-current={active ? 'page' : undefined}
               className={`group relative w-full flex items-center justify-center lg:justify-start gap-3 rounded-xl px-2.5 lg:px-3 py-2.5 text-sm transition-all duration-150 cursor-pointer ${
                 active
-                  ? 'bg-emerald-50 text-emerald-800 font-bold ring-1 ring-emerald-200 shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'
+                  ? (isDark ? 'bg-[#07332d] text-[#67e8d3] font-bold ring-1 ring-[#0f665a] shadow-xs' : 'bg-emerald-50 text-emerald-800 font-bold ring-1 ring-emerald-200 shadow-xs')
+                  : (isDark ? 'text-[#c9bda9] hover:bg-[#231d16] hover:text-[#f5f1e8] font-medium' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium')
               }`}
             >
               <span
                 className={`material-symbols-outlined text-[22px] leading-none transition-transform group-hover:scale-105 ${
-                  active ? 'text-emerald-700' : 'text-slate-500 group-hover:text-slate-700'
+                  active ? (isDark ? 'text-[#4de0c7]' : 'text-emerald-700') : (isDark ? 'text-[#9f927e] group-hover:text-[#d7cbb8]' : 'text-slate-500 group-hover:text-slate-700')
                 }`}
               >
                 {item.icon}
@@ -170,21 +173,7 @@ export const WebSidebar: React.FC = () => {
       {/* Layout / theme controls */}
       <SidebarSwitcher />
 
-      {/* Signed-in user */}
-      <button
-        type="button"
-        onClick={() => navigate('profile')}
-        title={currentUser.name}
-        className="shrink-0 border-t border-slate-100 flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer text-left"
-      >
-        <span className="w-9 h-9 rounded-full bg-[#1c1917] text-white font-bold text-xs flex items-center justify-center shrink-0">
-          {currentUser.avatar}
-        </span>
-        <span className="hidden lg:block min-w-0">
-          <span className="block text-sm font-semibold text-slate-900 truncate">{currentUser.name}</span>
-          <span className="block text-[11px] text-slate-500 truncate">{currentUser.roleLabel}</span>
-        </span>
-      </button>
+
     </aside>
   );
 };
