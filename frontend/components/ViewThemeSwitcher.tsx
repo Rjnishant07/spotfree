@@ -123,7 +123,8 @@ export const ThemeFab: React.FC<{ raised?: boolean }> = ({ raised = true }) => {
 
 /** Layout + theme controls for the web-view sidebar. */
 export const SidebarSwitcher: React.FC = () => {
-  const { viewMode, setViewMode, themePref, setThemePref } = useUIPrefs();
+  const { viewMode, setViewMode, themePref, setThemePref, resolvedTheme } = useUIPrefs();
+  const isDark = resolvedTheme === 'dark';
 
   const themes = [
     { value: 'system', icon: 'brightness_auto', label: 'Auto' },
@@ -132,7 +133,7 @@ export const SidebarSwitcher: React.FC = () => {
   ] as const;
 
   return (
-    <div className="border-t border-slate-100 px-3 py-2.5 shrink-0">
+    <div className={`border-t px-3 py-2.5 shrink-0 ${isDark ? "border-[#332a20]" : "border-slate-100"}`}>
       <div className="flex items-center justify-between gap-3">
         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
           View
@@ -147,8 +148,8 @@ export const SidebarSwitcher: React.FC = () => {
             onClick={() => setViewMode('mobile')}
             className={`group flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
               viewMode === 'mobile'
-                ? 'bg-slate-100 text-slate-900'
-                : 'text-slate-400 hover:bg-slate-50 hover:text-slate-700'
+                ? (isDark ? 'bg-[#2a241d] text-[#f1ece1]' : 'bg-slate-100 text-slate-900')
+                : (isDark ? 'text-[#9f927e] hover:bg-[#231d16] hover:text-[#f1ece1]' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-700')
             }`}
           >
             <span className="material-symbols-outlined text-[17px] leading-none">smartphone</span>
@@ -163,8 +164,8 @@ export const SidebarSwitcher: React.FC = () => {
             onClick={() => setViewMode('web')}
             className={`group flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
               viewMode === 'web'
-                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200'
-                : 'text-slate-400 hover:bg-slate-50 hover:text-slate-700'
+                ? (isDark ? 'bg-[#07332d] text-[#67e8d3] ring-1 ring-inset ring-[#0f665a]' : 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200')
+                : (isDark ? 'text-[#9f927e] hover:bg-[#231d16] hover:text-[#f1ece1]' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-700')
             }`}
           >
             <span className="material-symbols-outlined text-[17px] leading-none">desktop_windows</span>
