@@ -954,7 +954,7 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
       if (prev.length > 0) {
         const nextHistory = [...prev];
         const last = nextHistory.pop()!;
-        if ((last === 'admin-dashboard' || last === 'manage-rooms') && roleNormalized !== 'admin') {
+        if ((last === 'admin-dashboard' || last === 'manage-rooms' || last === 'user-management') && roleNormalized !== 'admin') {
           setCurrentView(roleNormalized === 'faculty' ? 'faculty-dashboard' : 'student-dashboard');
           return nextHistory;
         }
