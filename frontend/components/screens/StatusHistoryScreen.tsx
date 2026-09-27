@@ -621,15 +621,15 @@ export const StatusHistoryScreen: React.FC = () => {
               return (
                 <div
                   key={item.id}
-                  className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col gap-2.5"
+                  className="bg-white rounded-2xl p-3 sm:p-3.5 border border-slate-200/90 shadow-sm flex flex-col gap-2"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-xs">
+                      <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-xs shrink-0">
                         <span className="material-symbols-outlined text-base">history</span>
                       </div>
                       <div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <h3 className="font-black text-sm text-slate-900 tracking-tight">{item.room}</h3>
                           {item.source === 'ADMIN OVERRIDE' && (
                             <span className="px-1.5 py-0.2 rounded bg-purple-100 text-purple-800 text-[9px] font-mono font-bold border border-purple-200">
@@ -661,35 +661,35 @@ export const StatusHistoryScreen: React.FC = () => {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400 text-[11px] font-medium">
+                    <div className="flex items-center gap-1 text-slate-400 text-[10px] sm:text-[11px] font-medium shrink-0">
                       <span className="material-symbols-outlined text-sm">schedule</span>
                       <span>{item.time || item.timestamp}</span>
                     </div>
                   </div>
 
                   {/* Transition Banner */}
-                  <div className="bg-slate-50 rounded-xl p-2.5 flex items-center justify-between border border-slate-100">
-                    <div className="flex flex-col items-start gap-1">
-                      <span className="text-[10px] font-bold text-slate-400">Previous</span>
+                  <div className="bg-slate-50/80 rounded-xl px-3 py-2 border border-slate-100 flex items-center gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Previous</span>
                       <StatusBadge status={item.from} size="sm" />
                     </div>
 
-                    <span className="material-symbols-outlined text-slate-400 text-lg">east</span>
+                    <span className="material-symbols-outlined text-slate-300 text-base shrink-0">east</span>
 
-                    <div className="flex flex-col items-end gap-1">
-                      <span className="text-[10px] font-bold text-slate-400">New Status</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Now</span>
                       <StatusBadge status={item.to} size="sm" />
                     </div>
                   </div>
 
                   {/* Override Time Range if present */}
                   {item.startTime && item.endTime && (
-                    <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-purple-50/90 border border-purple-200/80 text-[11px] text-purple-950">
-                      <div className="flex items-center gap-1.5">
+                    <div className="flex items-center justify-between gap-3 px-2.5 py-1.5 rounded-lg bg-purple-50/70 border border-purple-200/70 text-[10px] text-purple-950">
+                      <div className="flex items-center gap-1.5 min-w-0">
                         <span className="material-symbols-outlined text-sm text-purple-700">schedule</span>
-                        <span className="font-bold">Override Window:</span>
+                        <span className="font-bold uppercase tracking-wide">Override window</span>
                       </div>
-                      <span className="font-mono font-bold bg-white px-2 py-0.5 rounded-md border border-purple-200 shadow-2xs">
+                      <span className="font-mono font-bold bg-white/80 px-2 py-1 rounded-md border border-purple-200/80 whitespace-nowrap">
                         {item.startTime} → {item.endTime}
                       </span>
                     </div>
@@ -697,7 +697,7 @@ export const StatusHistoryScreen: React.FC = () => {
 
 
                   {/* Footer Metadata */}
-                  <div className="flex items-center justify-between text-xs text-slate-500 pt-0.5 border-t border-slate-100">
+                  <div className="flex items-center justify-between gap-3 text-xs text-slate-500 pt-1 border-t border-slate-100">
                     <span className="text-[11px] flex items-center gap-1">
                       <span>By:</span>
                       <button
@@ -706,11 +706,11 @@ export const StatusHistoryScreen: React.FC = () => {
                           e.stopPropagation();
                           setSelectedUserItem(item);
                         }}
-                        className="text-emerald-700 hover:text-emerald-800 hover:underline font-bold transition-colors cursor-pointer inline-flex items-center gap-0.5 group"
+                        className="text-emerald-700 hover:text-emerald-800 hover:underline font-bold transition-colors cursor-pointer inline-flex items-center gap-1 group truncate max-w-[190px]"
                         title={`View user information for ${item.by}`}
                       >
                         <span>{item.by}</span>
-                        <span className="material-symbols-outlined text-[12px] opacity-70 group-hover:opacity-100">open_in_new</span>
+                        <span className="material-symbols-outlined text-[12px] opacity-60 group-hover:opacity-100 shrink-0">open_in_new</span>
                       </button>
                     </span>
 
@@ -734,21 +734,21 @@ export const StatusHistoryScreen: React.FC = () => {
                   </div>
 
                   {item.note && (
-                    <p className="text-[11px] text-slate-500 italic bg-slate-50 px-2.5 py-1 rounded-lg">
+                    <p className="text-[10px] leading-relaxed text-slate-500 italic bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100">
                       &quot;{item.note}&quot;
                     </p>
                   )}
 
                   {/* Prominent Override Action Button (Faculty: Override Student Status | Admin: Admin Override) */}
                   {canOverrideItem(item) && (
-                    <div className="pt-2 border-t border-slate-100">
+                    <div className="flex items-center justify-end pt-1 border-t border-slate-100">
                       <button
                         type="button"
                         onClick={() => handleOpenOverride(item)}
-                        className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.98] ${
+                        className={`py-1.5 px-2.5 rounded-lg text-[10px] font-bold inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-[0.98] ${
                           isAdmin
-                            ? 'bg-purple-900 hover:bg-purple-800 text-white shadow-purple-900/15'
-                            : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/15'
+                            ? 'bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200'
+                            : 'bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200'
                         }`}
                         title={isAdmin ? 'Admin Override room status' : 'Override Student Status as Faculty'}
                       >
