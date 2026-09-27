@@ -118,7 +118,7 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-[10px] font-semibold text-slate-400">3 wings</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             {bldgStats.map(({ bldg, stats }) => {
               const occupancy = stats.total ? Math.round(((stats.occupied + stats.reserved) / stats.total) * 100) : 0;
               return (
@@ -166,7 +166,7 @@ export const AdminDashboard: React.FC = () => {
             <p className="text-[11px] text-slate-500 mt-0.5">Manage the campus directory and room operations</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
             {[
               {
                 title: 'Manage Rooms',
