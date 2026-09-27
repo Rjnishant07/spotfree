@@ -105,7 +105,7 @@ export const WebSidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="sticky top-0 h-screen w-16 lg:w-64 shrink-0 bg-white border-r border-slate-200 flex flex-col z-30">
+    <aside className="sticky top-0 h-screen w-[72px] lg:w-[248px] shrink-0 bg-white border-r border-slate-200 flex flex-col z-30">
       {/* Brand */}
       <div className="flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-5 h-16 border-b border-slate-100 shrink-0">
         <div className="w-9 h-9 rounded-xl bg-[#1c1917] flex items-center justify-center text-emerald-400 shadow-sm shrink-0">
@@ -118,7 +118,7 @@ export const WebSidebar: React.FC = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 lg:px-3 space-y-1" aria-label="Main">
+      <nav className="flex-1 overflow-y-auto py-3 px-2.5 lg:px-3 space-y-1.5" aria-label="Main">
         {items.map((item) => {
           const active = item.match.includes(currentView);
           return (
@@ -129,10 +129,10 @@ export const WebSidebar: React.FC = () => {
               title={item.label}
               aria-label={item.label}
               aria-current={active ? 'page' : undefined}
-              className={`group relative w-full flex items-center justify-center lg:justify-start gap-3 rounded-xl px-2.5 lg:px-3 py-2.5 text-sm transition-all cursor-pointer ${
+              className={`group relative w-full flex items-center justify-center lg:justify-start gap-3 rounded-xl px-2.5 lg:px-3 py-2.5 text-sm transition-all duration-150 cursor-pointer ${
                 active
-                  ? 'bg-emerald-50 text-emerald-800 font-bold border-l-4 border-emerald-600 shadow-xs pl-2 lg:pl-2.5'
-                  : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 font-medium'
+                  ? 'bg-emerald-50 text-emerald-800 font-bold ring-1 ring-emerald-200 shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'
               }`}
             >
               <span

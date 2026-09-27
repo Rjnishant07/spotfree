@@ -44,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, showBack = fals
             : 'bg-white/90 backdrop-blur-md border-b border-slate-200'
         }`}
       >
-        <div className="flex items-center justify-between px-6 lg:px-8 h-16 w-full">
+        <div className="flex items-center justify-between px-5 lg:px-8 h-[68px] w-full max-w-[1440px] mx-auto">
           <div className="flex items-center gap-3 min-w-0">
             {showBack && (
               <button
@@ -88,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, showBack = fals
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             {/* Campus Live Status Chip */}
             <div
               className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs transition-colors ${
@@ -183,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, showBack = fals
       }`}
     >
       {/* Main App Navigation Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5">
+      <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2.5 min-w-0">
           {showBack ? (
             <button
