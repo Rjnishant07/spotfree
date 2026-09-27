@@ -9,7 +9,7 @@ import { StatusBadge } from '../StatusBadge';
 const buildings = ['CME', 'CB', 'ICT'] as const;
 
 export const CampusInsightsScreen: React.FC = () => {
-  const { rooms, timetable, history, navigate, setSelectedRoomId } = useSpotFree();
+  const { rooms, timetable, navigate, setSelectedRoomId } = useSpotFree();
   const { effectiveView } = useUIPrefs();
   const isWeb = effectiveView === 'web';
 
@@ -132,7 +132,9 @@ export const CampusInsightsScreen: React.FC = () => {
               {roomTypeData.map(([type, count]) => (
                 <div key={type} className="flex items-center gap-3">
                   <span className="w-28 text-[10px] font-bold text-slate-600 truncate">{type}</span>
-                  <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden"><div className="h-full bg-slate-800 rounded-full" style={{width: `${Math.min(100, count / stats.total * 100)}%`}} /></div>
+                  <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div className="h-full bg-slate-800 rounded-full" style={{ width: `${Math.min(100, count / stats.total * 100)}%` }} />
+                  </div>
                   <span className="text-[10px] font-black text-slate-900 w-5">{count}</span>
                 </div>
               ))}
@@ -144,8 +146,12 @@ export const CampusInsightsScreen: React.FC = () => {
               <h3 className="text-sm font-extrabold text-slate-900">Peak timetable window</h3>
               <span className="material-symbols-outlined text-purple-600">schedule</span>
             </div>
-            <div className="text-2xl font-black text-slate-900 mt-3">{stats.peakHour ? `${stats.peakHour}:00` : '—'}</div>
-            <p className="text-[10px] text-slate-500 mt-1">Most timetable sessions begin around this hour.</p>
+            <div className="text-2xl font-black text-slate-900 mt-3">
+              {stats.peakHour ? `${stats.peakHour}:00` : '—'}
+            </div>
+            <p className="text-[10px] text-slate-500 mt-1">
+              Most timetable sessions begin around this hour.
+            </p>
           </div>
         </section>
 
@@ -155,18 +161,26 @@ export const CampusInsightsScreen: React.FC = () => {
               <h3 className="text-sm font-extrabold text-slate-900">Currently active spaces</h3>
               <p className="text-[10px] text-slate-500">Quick access to rooms currently in use</p>
             </div>
-            <button onClick={() => navigate('room-availability')} className="text-[11px] font-bold text-emerald-700">View all</button>
+            <button onClick={() => navigate('room-availability')} className="text-[11px] font-bold text-emerald-700">
+              View all
+            </button>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-2">
             {topRooms.map(r => (
-              <button key={r.id} onClick={() => { setSelectedRoomId(r.id); navigate('room-details'); }} className="text-left border border-slate-200 rounded-xl p-3 hover:border-emerald-300 transition">
-                <div className="flex items-center justify-between"><span className="font-black text-xs">{r.id}</span><StatusBadge status={r.status} /></div>
+              <button
+                key={r.id}
+                onClick={() => { setSelectedRoomId(r.id); navigate('room-details'); }}
+                className="text-left border border-slate-200 rounded-xl p-3 hover:border-emerald-300 transition"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-black text-xs">{r.id}</span>
+                  <StatusBadge status={r.status} />
+                </div>
                 <div className="text-[10px] text-slate-500 mt-2">{r.building} • {r.capacity} seats</div>
               </button>
             ))}
           </div>
         </section>
-
     </main>
     </div>
   );
