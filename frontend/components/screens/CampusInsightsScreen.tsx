@@ -26,8 +26,7 @@ export const CampusInsightsScreen: React.FC = () => {
       return acc;
     }, {});
     const peakHour = Object.entries(peak).sort((a,b) => b[1] - a[1])[0]?.[0];
-    const energyEstimate = (occupied * 0.15 + reserved * 0.05).toFixed(1);
-    return { total, occupied, reserved, vacant, utilization, hours, peakHour, energyEstimate };
+    return { total, occupied, reserved, vacant, utilization, hours, peakHour };
   }, [rooms, timetable]);
 
   const buildingData = buildings.map(building => {
@@ -115,13 +114,7 @@ export const CampusInsightsScreen: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="text-sm font-extrabold text-slate-900">Energy insight</h3>
-                <p className="text-[10px] text-slate-500">Activity-based estimate, not meter data</p>
-              </div>
-              <span className="material-symbols-outlined text-amber-600">bolt</span>
+           <span className="material-symbols-outlined text-amber-600">bolt</span>
             </div>
             <div className="text-3xl font-black text-slate-900">{stats.energyEstimate} kWh</div>
             <p className="text-[10px] text-slate-500 mt-1">Estimated active-hour demand using room activity weighting.</p>
@@ -174,10 +167,7 @@ export const CampusInsightsScreen: React.FC = () => {
           </div>
         </section>
 
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-[10px] text-emerald-900">
-          <strong>Note:</strong> Energy values are planning estimates derived from room activity; connect actual power meters later for measured energy analytics.
-        </div>
-      </main>
+    </main>
     </div>
   );
 };
