@@ -125,77 +125,81 @@ export const ThemeFab: React.FC<{ raised?: boolean }> = ({ raised = true }) => {
 export const SidebarSwitcher: React.FC = () => {
   const { viewMode, setViewMode, themePref, setThemePref } = useUIPrefs();
 
+  const themes = [
+    { value: 'system', icon: 'brightness_auto', label: 'Auto' },
+    { value: 'light', icon: 'light_mode', label: 'Light' },
+    { value: 'dark', icon: 'dark_mode', label: 'Dark' },
+  ] as const;
+
   return (
-    <div className="border-t border-slate-100 px-2 lg:px-3 py-2 flex flex-col gap-1.5 shrink-0">
-      <div className="flex items-center justify-between gap-1">
-        <span className="hidden lg:inline text-[11px] font-semibold text-slate-500">View</span>
-        <div
-          role="radiogroup"
-          aria-label="Layout mode"
-          className="flex items-center rounded-lg bg-slate-100 border border-slate-200/80 p-0.5"
-        >
+    <div className="border-t border-slate-100 px-3 py-2.5 shrink-0">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
+          View
+        </span>
+
+        <div role="radiogroup" aria-label="Layout mode" className="flex items-center gap-1">
           <button
             type="button"
             role="radio"
             aria-checked={viewMode === 'mobile'}
             title="Mobile view"
             onClick={() => setViewMode('mobile')}
-            className={`flex items-center justify-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-all cursor-pointer ${
+            className={`group flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
               viewMode === 'mobile'
-                ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-slate-100 text-slate-900'
+                : 'text-slate-400 hover:bg-slate-50 hover:text-slate-700'
             }`}
           >
-            <span className="material-symbols-outlined text-sm leading-none">smartphone</span>
-            <span className="hidden lg:inline">Mobile</span>
+            <span className="material-symbols-outlined text-[17px] leading-none">smartphone</span>
+            <span>Mobile</span>
           </button>
+
           <button
             type="button"
             role="radio"
             aria-checked={viewMode === 'web'}
             title="Web view"
             onClick={() => setViewMode('web')}
-            className={`flex items-center justify-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-all cursor-pointer ${
+            className={`group flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
               viewMode === 'web'
-                ? 'bg-emerald-600 text-white shadow-xs font-semibold'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200'
+                : 'text-slate-400 hover:bg-slate-50 hover:text-slate-700'
             }`}
           >
-            <span className="material-symbols-outlined text-sm leading-none">desktop_windows</span>
-            <span className="hidden lg:inline">Web</span>
+            <span className="material-symbols-outlined text-[17px] leading-none">desktop_windows</span>
+            <span>Web</span>
           </button>
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-1">
-        <span className="hidden lg:inline text-[11px] font-semibold text-slate-500">Theme</span>
-        <div
-          role="radiogroup"
-          aria-label="Theme mode"
-          className="flex items-center rounded-lg bg-slate-100 border border-slate-200/80 p-0.5"
-        >
-          {[
-            { value: 'system', icon: 'brightness_auto', label: 'Auto' },
-            { value: 'light', icon: 'light_mode', label: 'Light' },
-            { value: 'dark', icon: 'dark_mode', label: 'Dark' },
-          ].map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              role="radio"
-              aria-checked={themePref === t.value}
-              title={`${t.label} theme`}
-              onClick={() => setThemePref(t.value as any)}
-              className={`flex items-center justify-center gap-1 rounded-md px-1.5 py-1 text-[11px] transition-all cursor-pointer ${
-                themePref === t.value
-                  ? 'bg-emerald-600 text-white shadow-xs font-semibold'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <span className="material-symbols-outlined text-sm leading-none">{t.icon}</span>
-              <span className="hidden lg:inline">{t.label}</span>
-            </button>
-          ))}
+      <div className="mt-1 flex items-center justify-between gap-3">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
+          Theme
+        </span>
+
+        <div role="radiogroup" aria-label="Theme mode" className="flex items-center gap-0.5">
+          {themes.map((theme) => {
+            const active = themePref === theme.value;
+            return (
+              <button
+                key={theme.value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                title={`${theme.label} theme`}
+                onClick={() => setThemePref(theme.value)}
+                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+                  active
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'text-slate-400 hover:bg-slate-50 hover:text-slate-700'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[17px] leading-none">{theme.icon}</span>
+                <span>{theme.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
