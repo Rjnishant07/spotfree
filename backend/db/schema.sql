@@ -58,3 +58,21 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   window_start TIMESTAMPTZ NOT NULL DEFAULT now(),
   count        INT NOT NULL DEFAULT 0
 );
+
+
+CREATE TABLE IF NOT EXISTS room_issues (
+  id BIGSERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  room_id TEXT NOT NULL,
+  category TEXT NOT NULL,
+  priority TEXT NOT NULL DEFAULT 'Normal',
+  description TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Open',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT room_issue_category_check CHECK (category IN ('AC','Projector','Lights','Furniture','Cleanliness','Network','Other')),
+  CONSTRAINT room_issue_priority_check CHECK (priority IN ('Low','Normal','High','Urgent')),
+  CONSTRAINT room_issue_status_check CHECK (status IN ('Open','In Progress','Resolved'))
+);
+CREATE INDEX IF NOT EXISTS room_issues_room_idx ON room_issues (room_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS room_issues_status_idx ON room_issues (status, created_at DESC);
