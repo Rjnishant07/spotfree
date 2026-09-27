@@ -930,7 +930,7 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
   const navigate = useCallback((view: ViewScreen, pushHistory: boolean = true) => {
     // Role protection guards:
     const roleNormalized = (currentUser?.role || currentRole || 'student').toLowerCase();
-    if ((view === 'admin-dashboard' || view === 'manage-rooms') && roleNormalized !== 'admin') {
+    if ((view === 'admin-dashboard' || view === 'manage-rooms' || view === 'user-management') && roleNormalized !== 'admin') {
       showToast('Restricted: Admin access only', 'lock');
       const fallbackView: ViewScreen = roleNormalized === 'faculty' ? 'faculty-dashboard' : 'student-dashboard';
       setCurrentView(fallbackView);
