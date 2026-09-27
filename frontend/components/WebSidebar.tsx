@@ -71,6 +71,13 @@ export const WebSidebar: React.FC = () => {
             view: 'manage-rooms',
             match: ['manage-rooms'],
           },
+          {
+            key: 'user-management',
+            label: 'User Management',
+            icon: 'manage_accounts',
+            view: 'user-management',
+            match: ['user-management'],
+          },
         ] as NavItem[])
       : []),
     {
