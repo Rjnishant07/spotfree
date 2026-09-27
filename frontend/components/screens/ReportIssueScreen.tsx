@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSpotFree } from '@/context/SpotFreeContext';
 import { useUIPrefs } from '@/context/UIPrefsContext';
 import { Header } from '../Header';
@@ -33,8 +33,6 @@ export const ReportIssueScreen: React.FC = () => {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
-  const selectedRoom = useMemo(() => rooms.find(r => r.id === roomId), [rooms, roomId]);
 
   const load = async () => {
     setLoading(true);
