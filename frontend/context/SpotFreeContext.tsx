@@ -1697,15 +1697,36 @@ export function SpotFreeProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Score based on capacity and suitability
-    const sorted = [...candidates].sort((a, b) => {
-      const aCanFit = a.capacity >= crit.peopleCount ? 1 : 0;
-      const bCanFit = b.capacity >= crit.peopleCount ? 1 : 0;
-      if (aCanFit !== bCanFit) return bCanFit - aCanFit;
+    // Multi-factor recommendation: availability, capacity fit, requested amenities,
+    // purpose/space type, and building preference. Higher score = better fit.
+    const purposeType = crit.purpose.toLowerCase().includes('meeting')
+      ? ['Meeting Room', 'SEMINAR HALL', 'Seminar Room']
+      : crit.purpose.toLowerCase().includes('study')
+      ? ['Study Room', 'CLASSROOM', 'Classroom']
+      : crit.purpose.toLowerCase().includes('project')
+      ? ['LABS', 'Classroom', 'CLASSROOM']
+      : ['CLASSROOM', 'Classroom', 'SEMINAR HALL', 'Seminar Room'];
 
-      const diffA = Math.abs(a.capacity - crit.peopleCount);
-      const diffB = Math.abs(b.capacity - crit.peopleCount);
-      return diffA - diffB;
+    const sorted = [...candidates].sort((a, b) => {
+      const score = (room: Room) => {
+        let value = 0;
+        const capacityFit = room.capacity >= crit.peopleCount
+          ? Math.max(0, 30 - Math.abs(room.capacity - crit.peopleCount))
+          : -40 - (crit.peopleCount - room.capacity) * 2;
+        value += capacityFit;
+
+        const amenityMatches = (crit.amenities || []).filter(wanted =>
+          room.amenities.some(actual => actual.toLowerCase().includes(wanted.toLowerCase()))
+        ).length;
+        value += amenityMatches * 12;
+
+        if (purposeType.some(t => room.type.toLowerCase() === t.toLowerCase())) value += 15;
+        if (room.status === 'VACANT') value += 20;
+        if (room.isTimetableControlled && room.upcomingClass) value -= 4;
+
+        return value;
+      };
+      return score(b) - score(a);
     });
 
     const match = sorted[0] || displayRooms.find(r => r.status === 'VACANT') || displayRooms[0];
