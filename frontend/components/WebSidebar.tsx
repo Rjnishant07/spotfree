@@ -122,7 +122,7 @@ export const WebSidebar: React.FC = () => {
   ];
 
   return (
-    <aside className={`sticky top-0 h-screen w-[72px] lg:w-[248px] shrink-0 flex flex-col z-30 transition-colors duration-150 ${isDark ? "bg-[#17130f] border-r border-[#332a20]" : "bg-white border-r border-slate-200"}`}>
+    <aside className={`sticky top-0 h-screen w-[72px] lg:w-[310px] shrink-0 flex flex-col z-30 transition-colors duration-150 ${isDark ? "bg-[#17130f] border-r border-[#332a20]" : "bg-white border-r border-slate-200"}`}>
       {/* Brand */}
       <div className={`flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-5 h-[84px] shrink-0 border-b ${isDark ? "border-[#332a20]" : "border-slate-100"}`}>
         <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-emerald-400 shadow-sm shrink-0 ${isDark ? "bg-[#2a241d] border border-[#443b2d]" : "bg-[#1c1917]"}`}>
