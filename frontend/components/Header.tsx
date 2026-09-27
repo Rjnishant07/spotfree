@@ -88,50 +88,19 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, showBack = fals
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-            {/* Campus Live Status Chip */}
-            <div
-              className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs transition-colors ${
-                isDark
-                  ? 'bg-[#221c15] border border-[#443b2c] shadow-xs'
-                  : 'bg-slate-50 border border-slate-200 text-slate-600'
-              }`}
-            >
-              <span
-                className={`w-2 h-2 rounded-full bg-emerald-400 animate-pulse ${
-                  isDark ? 'shadow-[0_0_8px_rgba(52,211,153,0.7)]' : ''
-                }`}
-              />
-              <span className={`font-semibold ${isDark ? 'text-[#f1ece1]' : 'text-slate-700'}`}>
-                HIT Campus
-              </span>
-              <span className={`pl-2 ml-0.5 border-l font-medium ${isDark ? 'border-[#443b2c] text-[#5eead4]' : 'border-slate-200 text-slate-500'}`}>
+          <div className="flex items-center gap-4 sm:gap-5 shrink-0">
+            {/* Campus + live time */}
+            <div className="hidden sm:flex items-center gap-3">
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs transition-colors ${isDark ? 'bg-[#221c15] border border-[#443b2c]' : 'bg-slate-50 border border-slate-200'}`}>
+                <span className={`w-2 h-2 rounded-full bg-emerald-400 animate-pulse ${isDark ? 'shadow-[0_0_8px_rgba(52,211,153,0.7)]' : ''}`} />
+                <span className={`font-semibold ${isDark ? 'text-[#f1ece1]' : 'text-slate-700'}`}>
+                  HIT Campus
+                </span>
+              </div>
+              <span className={`text-xs font-semibold tabular-nums ${isDark ? 'text-[#5eead4]' : 'text-slate-600'}`}>
                 {realTime}
               </span>
             </div>
-
-            {/* Notifications Button */}
-            <button
-              onClick={() => navigate('notifications')}
-              className={`relative w-11 h-11 rounded-xl flex items-center justify-center active:scale-95 transition-all shadow-xs cursor-pointer ${
-                isDark
-                  ? 'bg-[#221c15] border border-[#443b2c] text-[#f1ece1] hover:text-white hover:bg-[#2c251c] hover:border-[#6b5f4c]'
-                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
-              title="Notifications"
-              aria-label="Notifications"
-            >
-              <span className="material-symbols-outlined text-lg">notifications</span>
-              {unreadNotificationCount > 0 && (
-                <span
-                  className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center border-2 ${
-                    isDark ? 'border-[#1c1712]' : 'border-white'
-                  }`}
-                >
-                  {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
-                </span>
-              )}
-            </button>
 
             {/* Profile Button */}
             <button
