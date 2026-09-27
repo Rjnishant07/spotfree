@@ -10,6 +10,7 @@ import otpRoutes from './routes/otp.js';
 import authRoutes from './routes/auth.js';
 import roomRoutes from './routes/rooms.js';
 import adminRoutes from './routes/admin.js';
+import issueRoutes from './routes/issues.js';
 
 checkEnv();
 
@@ -27,6 +28,7 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/otp', otpRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/issues', issueRoutes);
 app.use('/api', roomRoutes);
 
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found.' }));
