@@ -4,16 +4,19 @@
 
 ### Smart Room Availability and Management System
 
-A centralized platform for discovering, managing, and reserving rooms in an educational campus.
+A centralized platform for discovering, managing, reserving, and monitoring rooms across an educational campus.
 
 <br>
 
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![React](https://img.shields.io/badge/React-20232F?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 
 <br>
+
+**Live Application:** https://spotfree-gilt.vercel.app/
 
 [GitHub Repository](https://github.com/Rjnishant07/spotfree)
 
@@ -23,44 +26,49 @@ A centralized platform for discovering, managing, and reserving rooms in an educ
 
 ## About
 
-SpotFree is a smart room availability and management system designed for educational campuses.
+SpotFree is a smart room availability and campus space-management system designed for educational institutions.
 
-The platform brings room discovery, room availability, room-status management, reservations, QR-based room identification, timetable access, activity history, notifications, and role-based controls into a single application.
+It brings room discovery, live availability, reservations, QR-based room identification, timetable information, status history, issue reporting, campus insights, notifications, and role-based administration into one application.
 
-The primary goal of SpotFree is to make it easier for users to find suitable rooms, understand their current availability, and perform room-related actions through a centralized system.
+The current deployment uses a Next.js frontend, a Node.js/Express backend, and a PostgreSQL database.
 
 ---
 
 ## Problem
 
-Finding an available room in a large educational campus can involve unnecessary communication and uncertainty.
+Finding a suitable room in a large educational campus can involve unnecessary communication and uncertainty.
 
 Users may need to determine:
 
 - Whether a room is currently available
 - Where the room is located
 - Whether it is occupied or reserved
-- Whether the room can be used during a particular period
-- Whether the room can be reserved
+- Whether it can be used during a particular period
+- Whether it can be reserved
 - What activity has recently occurred in the room
+- Whether a room has an unresolved maintenance issue
 
-SpotFree addresses these challenges by providing a centralized digital system for room discovery and management.
+SpotFree provides a centralized digital system for discovering and managing campus spaces.
 
 ---
 
 ## Solution
 
-SpotFree provides a single interface through which students, faculty, and administrators can:
+SpotFree provides a single interface for students, faculty, and administrators to:
 
 - Discover available rooms
 - Search and filter rooms
+- Get smart room recommendations
 - Identify rooms using QR codes
-- Update room status according to permissions
 - Reserve available rooms
-- View room-status history
+- Update room status according to permissions
+- View status history
+- Report room issues
+- Track issue status
+- View campus utilization insights
 - Access timetable information
 - Receive notifications
-- Manage their profiles
+- Manage user profiles
 
 ---
 
@@ -68,76 +76,113 @@ SpotFree provides a single interface through which students, faculty, and admini
 
 ### Live Room Availability
 
-View the current status of rooms through a centralized room availability interface.
+View room status through a centralized availability interface.
 
-Room states include:
+Supported room states include:
 
 - Vacant
 - Occupied
 - Reserved
 - No Information
 
-Rooms can be explored using relevant attributes such as building, floor, room type, and status.
-
-### Room Search and Filtering
-
-Search for rooms and narrow down results using available room information.
+Rooms can be explored using attributes such as building, floor, room type, and status.
 
 ### Smart Room Recommendation
 
-Suggest suitable rooms based on user requirements and room characteristics.
+Recommend suitable rooms using multiple factors such as:
+
+- Capacity fit
+- Requested amenities
+- Purpose and space type
+- Current availability
+- Timetable context
+- Building preference
+
+### Room Search and Filtering
+
+Search for rooms and narrow results using room information and availability attributes.
 
 ### QR-Based Room Identification
 
-Identify a room through its associated QR code and access room-specific information and actions.
+Identify a room through its associated QR code.
 
 The application supports:
 
-- QR Code Scanning
-- QR Code Upload
-- Manual Room Number Entry
-
-### Room Status Management
-
-Authorized users can update room status according to their role and permissions.
+- QR code scanning
+- QR code upload
+- Manual room-number entry
 
 ### Room Reservation
 
 Reserve an available room by selecting:
 
 - Date
-- Start Time
-- End Time
+- Start time
+- End time
 
-The reservation flow is designed to handle conflicting time periods for the same room.
+The reservation system checks for conflicting time periods for the same room.
+
+### Room Status Management
+
+Authorized users can update room status according to their role and permissions.
 
 ### Status History
 
-Maintain a record of room-status changes and related activity.
-
-History can contain information such as:
+View a record of room-status changes and related activity, including:
 
 - Room
-- Previous Status
-- New Status
+- Previous status
+- New status
 - User
 - Role
 - Time
-- Update Source
+- Update source
 
-### Role-Based Access
+### Issue Reporting
 
-SpotFree supports multiple user roles:
+Users can report room-related issues such as:
 
-- Student
+- AC
+- Projector
+- Lights
+- Furniture
+- Cleanliness
+- Network
+- Other
+
+Issues support priority levels and status tracking.
+
+Administrators can move issues through:
+
+`Open → In Progress → Resolved`
+
+### Campus Insights
+
+Campus Insights provides a high-level view of space usage, including:
+
+- Overall utilization
+- Available rooms
+- Active room usage
+- Scheduled hours
+- Building utilization
+- Space-type distribution
+- Peak timetable windows
+- Active spaces
+
+### User Management
+
+Administrators can view registered users and filter them by:
+
+- All users
+- Students
 - Faculty
-- Admin
+- Admins
 
-Each role has different permissions and access levels.
+User information includes role and available academic details.
 
 ### Timetable
 
-Provide timetable access together with a structured day-wise and time-wise schedule view.
+Provide structured timetable information with day-wise and time-wise scheduling.
 
 ### Notifications
 
@@ -145,11 +190,11 @@ Display important updates related to room activity and reservations.
 
 ### Profile Management
 
-Provide access to user profile information and account-related functionality.
+Provide access to user profile and account-related information.
 
 ### Responsive Interface
 
-The interface supports both mobile and desktop-oriented layouts along with light and dark themes.
+The interface supports desktop and mobile layouts together with light and dark themes.
 
 ---
 
@@ -165,6 +210,7 @@ Students can:
 - Reserve available rooms
 - View timetable information
 - View status history
+- Report room issues
 - Perform permitted room-status actions
 
 ### Faculty
@@ -179,17 +225,31 @@ Faculty members can:
 - Perform permitted status overrides
 - View room history
 - Access timetable information
+- Report room issues
 
 ### Admin
 
-Administrators have the highest level of system access and can:
+Administrators have system-level access and can:
 
 - Manage rooms
 - Manage room status
 - Perform administrative overrides
 - Review status history
+- Manage users
+- Review reported room issues
+- Update issue status
+- Access campus insights
 - Manage system-level room operations
-- Access reservation and notification functionality
+
+---
+
+## Authentication and Access Control
+
+SpotFree uses role-based access control for protected application areas.
+
+Authentication includes OTP-based email verification. Production email delivery is handled through EmailJS with Gmail.
+
+The backend validates authenticated sessions before protected operations such as administrative user management and issue-status updates.
 
 ---
 
@@ -207,7 +267,7 @@ FACULTY
 STUDENT
 ```
 
-Higher-authority roles can override status updates made by lower-authority roles.
+Higher-authority roles can override status updates made by lower-authority roles where the application permits it.
 
 ---
 
@@ -215,12 +275,61 @@ Higher-authority roles can override status updates made by lower-authority roles
 
 | Layer | Technology |
 |---|---|
-| Framework | Next.js (App Router) |
-| UI Library | React |
+| Frontend Framework | Next.js (App Router) |
+| UI | React |
 | Language | TypeScript |
 | Styling | Tailwind CSS |
-| QR Handling | jsqr (scanning), qrcode (generation) |
+| Backend | Node.js + Express |
+| Database | PostgreSQL |
+| Database Hosting | Neon |
+| Frontend Hosting | Vercel |
+| Backend Hosting | Render |
+| Authentication | OTP + session-based access control |
+| Email Delivery | EmailJS + Gmail |
+| QR Scanning | jsQR |
+| QR Generation | qrcode |
 | State Management | React Context |
+
+---
+
+## Deployment Architecture
+
+```text
+                    ┌─────────────────────┐
+                    │     SpotFree Web    │
+                    │      Next.js        │
+                    │       Vercel        │
+                    └──────────┬──────────┘
+                               │
+                               │ API Requests
+                               ▼
+                    ┌─────────────────────┐
+                    │    SpotFree API     │
+                    │  Node.js + Express  │
+                    │       Render        │
+                    └──────────┬──────────┘
+                               │
+                               │ PostgreSQL
+                               ▼
+                    ┌─────────────────────┐
+                    │        Neon         │
+                    │     PostgreSQL      │
+                    └─────────────────────┘
+
+                               │
+                               │ OTP Email
+                               ▼
+                    ┌─────────────────────┐
+                    │ EmailJS + Gmail     │
+                    └─────────────────────┘
+```
+
+### Production Services
+
+- **Frontend:** Vercel
+- **Backend:** Render
+- **Database:** Neon PostgreSQL
+- **Email:** EmailJS + Gmail
 
 ---
 
@@ -228,14 +337,40 @@ Higher-authority roles can override status updates made by lower-authority roles
 
 ```text
 spotfree/
-├── frontend/               Next.js application
-│   ├── app/                 Application entry (layout, page, global styles)
-│   ├── components/          Shared UI components
-│   │   └── screens/          Individual screen components
-│   ├── context/              Global application state
-│   ├── lib/                  Types and utility functions
-│   └── mock-data/            Rooms, users, timetable, and QR data
-└── stitch_screens/          Original design prototypes for reference
+├── backend/
+│   ├── db/
+│   │   └── schema.sql
+│   ├── lib/
+│   │   ├── db.js
+│   │   ├── env.js
+│   │   └── mailer.js
+│   ├── routes/
+│   │   ├── admin.js
+│   │   ├── issues.js
+│   │   └── otp.js
+│   ├── server.js
+│   └── package.json
+│
+├── frontend/
+│   ├── app/
+│   ├── components/
+│   │   └── screens/
+│   │       ├── AdminDashboard.tsx
+│   │       ├── CampusInsightsScreen.tsx
+│   │       ├── FacultyDashboard.tsx
+│   │       ├── ReportIssueScreen.tsx
+│   │       ├── StatusHistoryScreen.tsx
+│   │       └── UserManagementScreen.tsx
+│   ├── context/
+│   ├── lib/
+│   └── package.json
+│
+├── stitch_screens/
+├── .gitignore
+├── DEPLOY.md
+├── LAUNCH_CHECKLIST.md
+├── README.md
+└── render.yaml
 ```
 
 ---
@@ -246,36 +381,165 @@ spotfree/
 
 - Node.js
 - npm
+- PostgreSQL database for backend development
 
-### Installation
+### Clone the Repository
+
+```bash
+git clone https://github.com/Rjnishant07/spotfree.git
+cd spotfree
+```
+
+### Frontend
 
 ```bash
 cd frontend
 npm install
-```
-
-### Running the Application
-
-```bash
 npm run dev
 ```
 
-The application will be available at `http://localhost:3000`.
+The frontend runs locally at:
+
+```text
+http://localhost:3000
+```
+
+Set the frontend backend URL through the environment configuration, for example:
+
+```text
+BACKEND_URL=http://localhost:10000
+```
+
+### Backend
+
+In another terminal:
+
+```bash
+cd backend
+npm install
+npm start
+```
+
+The backend port is controlled by the server environment. For local development, the application can use port `10000`.
+
+---
+
+## Environment Variables
+
+### Backend
+
+Production requires the following environment variables:
+
+```text
+DATABASE_URL
+DATABASE_SSL
+OTP_SECRET
+SESSION_SECRET
+EMAILJS_SERVICE_ID
+EMAILJS_TEMPLATE_ID
+EMAILJS_PUBLIC_KEY
+FRONTEND_URL
+ADMIN_EMAILS
+```
+
+Secrets and API keys should be stored in the deployment platform's environment-variable settings and must not be committed to GitHub.
+
+### Frontend
+
+The frontend uses the backend URL through:
+
+```text
+BACKEND_URL
+```
+
+For production, this points to the deployed SpotFree API.
+
+---
+
+## Database
+
+SpotFree uses PostgreSQL with Neon for production persistence.
+
+The database contains application data such as:
+
+- Users
+- Rooms
+- Reservations
+- Status history
+- Room issues
+- Authentication/session data
+
+Database schema definitions are maintained in:
+
+```text
+backend/db/schema.sql
+```
 
 ---
 
 ## Design Prototypes
 
-The `stitch_screens` directory contains the original HTML prototypes used as the visual reference for every screen in the application, including the interactive end-to-end prototype.
+The `stitch_screens` directory contains the original design prototypes used as visual references during the development of the application.
+
+---
+
+## Deployment
+
+The current production setup is:
+
+| Service | Platform | Purpose |
+|---|---|---|
+| Frontend | Vercel | Next.js web application |
+| Backend | Render | Node.js/Express API |
+| Database | Neon | PostgreSQL persistence |
+| Email | EmailJS + Gmail | OTP delivery |
+
+The production frontend is available at:
+
+**https://spotfree-gilt.vercel.app/**
+
+The backend health endpoint is:
+
+**https://spotfree.onrender.com/api/health**
+
+The `Changes` branch is used for the current deployed development/production workflow.
+
+---
+
+## Current Modules
+
+The current application includes:
+
+- Room Availability
+- Room Search and Filtering
+- Smart Room Recommendation
+- QR Room Identification
+- Room Reservation
+- Room Status Management
+- Status History
+- Timetable
+- Notifications
+- Profile Management
+- Campus Insights
+- Issue Reporting
+- Admin Issue Management
+- User Management
+- Role-Based Access Control
+- Light/Dark Theme Support
+- Responsive Web Interface
 
 ---
 
 ## Roadmap
 
-- Backend API and persistent database integration
-- Real authentication system
-- Push notification support
-- Automated timetable-based status updates
+Potential future improvements include:
+
+- Automated timetable-based room status updates
+- Push notifications
+- Expanded analytics and reporting
+- More granular administrative controls
+- Additional campus integrations
+- Production monitoring and operational tooling
 
 ---
 
@@ -284,8 +548,6 @@ The `stitch_screens` directory contains the original HTML prototypes used as the
 Not yet specified.
 
 ---
-
-
 
 <div align="center">
 
