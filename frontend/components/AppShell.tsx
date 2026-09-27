@@ -28,7 +28,7 @@ export const AppShell: React.FC<AppShellProps> = ({ isAuth, children }) => {
 
   if (effectiveView === 'web') {
     return (
-      <div className="spotfree-canvas min-h-screen w-full flex">
+      <div className="spotfree-canvas min-h-screen w-full flex bg-[#f0ede4]">
         {!isAuth && <WebSidebar />}
 
         {isAuth ? (
@@ -68,7 +68,7 @@ export const AppShell: React.FC<AppShellProps> = ({ isAuth, children }) => {
             </main>
           </div>
         ) : (
-          <div className="flex-1 min-w-0 min-h-screen flex flex-col bg-[#fafaf9] overflow-y-auto">
+          <div className="flex-1 min-w-0 min-h-screen flex flex-col bg-[#f6f5f2] overflow-y-auto">
             <main className="flex-1 w-full flex flex-col">{children}</main>
           </div>
         )}
@@ -81,7 +81,7 @@ export const AppShell: React.FC<AppShellProps> = ({ isAuth, children }) => {
 
   return (
     <div className="spotfree-canvas min-h-screen w-full flex justify-center items-start">
-      <div className="w-full max-w-[430px] min-h-screen bg-[#fafaf9] flex flex-col relative shadow-2xl overflow-x-hidden">
+      <div className="w-full max-w-[440px] min-h-screen bg-[#fafaf9] flex flex-col relative shadow-2xl overflow-x-hidden">
         <main className="flex-1 flex flex-col min-w-0 w-full max-w-full overflow-x-hidden">{children}</main>
         {!isAuth && <BottomNavigation />}
       </div>
